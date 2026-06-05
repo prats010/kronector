@@ -159,6 +159,14 @@ Because F1 regulations change constantly, the `auto_retrain_pipeline.py` script 
 
 ---
 
+## 👨‍💻 About the Author
+**Prathamesh Anil Bhamare**  
+*MSc Computer Science Student*
+
+Built with a passion for Data Science, Artificial Intelligence, and the relentless pursuit of perfect race strategy.
+
+---
+
 <div align="center">
   <p><i>Built for the passion of racing and the pursuit of perfect data.</i></p>
 </div>
