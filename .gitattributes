@@ -1,3 +1,4 @@
+ui/drift_report.html linguist-generated=true
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 *.webp filter=lfs diff=lfs merge=lfs -text
 *.db filter=lfs diff=lfs merge=lfs -text
