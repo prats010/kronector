@@ -1,0 +1,1 @@
+# KRONECTOR — FastAPI Backend

@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+
+# FastF1 cache (2-4 GB)
+cache/
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# ChromaDB
+chroma/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data artifacts (too large for git)
+*.parquet
+*.csv
+!tests/fixtures/*.csv
