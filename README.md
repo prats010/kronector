@@ -104,7 +104,7 @@ graph TD
 
 **1. Clone the repository:**
 ```bash
-git clone https://github.com/your-username/kronector.git
+git clone https://github.com/prats010/kronector.git
 cd kronector
 ```
 
