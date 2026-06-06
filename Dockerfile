@@ -20,21 +20,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY --chown=1000:1000 requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY agents/ ./agents/
-COPY api/ ./api/
-COPY ml/ ./ml/
-COPY data/ ./data/
-COPY scripts/ ./scripts/
-COPY ui/ ./ui/
-COPY run_api.py run_all.py ./
+COPY --chown=1000:1000 agents/ ./agents/
+COPY --chown=1000:1000 api/ ./api/
+COPY --chown=1000:1000 ml/ ./ml/
+COPY --chown=1000:1000 data/ ./data/
+COPY --chown=1000:1000 scripts/ ./scripts/
+COPY --chown=1000:1000 ui/ ./ui/
+COPY --chown=1000:1000 run_api.py run_all.py ./
 
 # Copy pre-trained model artifacts and data
-COPY data_output/ ./data_output/
-COPY mlruns/ ./mlruns/
+COPY --chown=1000:1000 data_output/ ./data_output/
+COPY --chown=1000:1000 mlruns/ ./mlruns/
 
 # HF Spaces expects port 7860
 EXPOSE 7860
