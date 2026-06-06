@@ -1,0 +1,61 @@
+# ============================================================================
+# KRONECTOR — Hugging Face Spaces Dockerfile
+# ============================================================================
+# HF Spaces runs a single container, so we combine FastAPI + Streamlit
+# behind a simple process manager. HF exposes port 7860 by default.
+#
+# Deploy:
+#   1. Create a Space on huggingface.co (SDK: Docker)
+#   2. Push this repo to the Space
+#   3. Set GROQ_API_KEY as a Space Secret
+# ============================================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# LightGBM requires libgomp (OpenMP runtime)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    curl \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY agents/ ./agents/
+COPY api/ ./api/
+COPY ml/ ./ml/
+COPY data/ ./data/
+COPY scripts/ ./scripts/
+COPY ui/ ./ui/
+COPY run_api.py run_all.py ./
+
+# Copy pre-trained model artifacts and data
+COPY data_output/ ./data_output/
+COPY mlruns/ ./mlruns/
+COPY mlflow.db ./mlflow.db
+
+# Supervisor config — runs FastAPI on 7860 (HF's expected port)
+RUN cat > /etc/supervisor/conf.d/kronector.conf << 'EOF'
+[supervisord]
+nodaemon=true
+logfile=/dev/stdout
+logfile_maxbytes=0
+
+[program:fastapi]
+command=uvicorn api.main:app --host 0.0.0.0 --port 7860
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+# HF Spaces expects port 7860
+EXPOSE 7860
+
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

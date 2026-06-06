@@ -21,6 +21,7 @@ cache/
 # MLflow
 mlruns/
 mlartifacts/
+mlflow.db
 
 # ChromaDB
 chroma/

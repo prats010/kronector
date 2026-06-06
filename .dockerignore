@@ -1,0 +1,57 @@
+# =============================================================================
+# KRONECTOR — .dockerignore
+# =============================================================================
+# Keeps the Docker build context small and prevents secrets from leaking
+# into images. The COPY directives in the Dockerfile explicitly include
+# only what's needed (agents/, api/, ml/, data/, etc.).
+# =============================================================================
+
+# --- Git & Version Control ---
+.git
+.gitattributes
+
+# --- Python artifacts ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+
+# --- Virtual environments ---
+venv/
+.venv/
+env/
+
+# --- Secrets (NEVER bake into image) ---
+.env
+
+# --- FastF1 telemetry cache (2-26 GB) ---
+cache/
+
+# --- ChromaDB ---
+chroma/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Docker ---
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# --- Docs (not needed at runtime) ---
+docs/
+README.md

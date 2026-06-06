@@ -1,0 +1,23 @@
+artifact_path: file:///C:/Users/Lenovo/OneDrive/Desktop/kronector/mlruns/563634279953604033/models/m-6c6d818ed4634c2c83dea47f178d7ad5/artifacts
+flavors:
+  lightgbm:
+    code: null
+    data: model.pkl
+    lgb_version: 4.6.0
+    model_class: lightgbm.sklearn.LGBMClassifier
+    serialization_format: cloudpickle
+    skops_trusted_types: null
+  python_function:
+    data: model.pkl
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.lightgbm
+    python_version: 3.11.9
+mlflow_version: 3.12.0
+model_id: m-6c6d818ed4634c2c83dea47f178d7ad5
+model_size_bytes: 682513
+model_uuid: m-6c6d818ed4634c2c83dea47f178d7ad5
+prompts: null
+run_id: 251301396e4b4b36aaebf7104169c07d
+utc_time_created: '2026-06-02 15:11:51.945704'

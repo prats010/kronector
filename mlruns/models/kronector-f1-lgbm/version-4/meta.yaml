@@ -1,0 +1,16 @@
+creation_timestamp: 1780694952047
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1780694952047
+model_id: m-41d554b096e24e229538a591a98dedbb
+name: kronector-f1-lgbm
+run_id: 14ea1b6adfc148b99eada74d20d3267a
+run_link: null
+source: models:/m-41d554b096e24e229538a591a98dedbb
+status: READY
+status_message: null
+storage_location: file:///C:/Users/Lenovo/OneDrive/Desktop/kronector/mlruns/563634279953604033/models/m-41d554b096e24e229538a591a98dedbb/artifacts
+user_id: null
+version: 4
+workspace: default

@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/Lenovo/OneDrive/Desktop/kronector/mlruns/563634279953604033/models/m-c332c58e6c0345aa848e92ec6f3248d1/artifacts
+creation_timestamp: 1780335699973
+experiment_id: '563634279953604033'
+last_updated_timestamp: 1780335714288
+model_id: m-c332c58e6c0345aa848e92ec6f3248d1
+model_type: null
+name: model
+source_run_id: b5d33fd8abaa4cc9a0c7e4af95c34ba5
+status: 2
+status_message: null

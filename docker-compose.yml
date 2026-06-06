@@ -1,0 +1,117 @@
+# ============================================================================
+# KRONECTOR — Docker Compose
+# ============================================================================
+# Services:
+#   api       — FastAPI prediction server (port 8000)
+#   streamlit — Drift monitoring dashboard (port 8501)
+#   mlflow    — MLflow tracking server (port 5000)
+#   nginx     — Reverse proxy (ports 80/443)
+#
+# Usage:
+#   docker compose up -d          # Start all services
+#   docker compose logs -f api    # Follow API logs
+#   docker compose down           # Stop everything
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # FastAPI — Core prediction API
+  # --------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      target: production
+    container_name: kronector-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - model_data:/app/mlruns
+      - app_data:/app/data_output
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - kronector-net
+
+  # --------------------------------------------------------------------------
+  # Streamlit — Drift monitoring dashboard
+  # --------------------------------------------------------------------------
+  streamlit:
+    build:
+      context: .
+      target: production
+    container_name: kronector-dashboard
+    command: >
+      streamlit run ui/monitoring_dashboard.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - model_data:/app/mlruns
+      - app_data:/app/data_output
+    restart: unless-stopped
+    networks:
+      - kronector-net
+
+  # --------------------------------------------------------------------------
+  # MLflow — Experiment tracking & model registry
+  # --------------------------------------------------------------------------
+  mlflow:
+    build:
+      context: .
+      target: production
+    container_name: kronector-mlflow
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///app/mlflow.db
+      --default-artifact-root /app/mlruns
+    ports:
+      - "5000:5000"
+    volumes:
+      - model_data:/app/mlruns
+      - mlflow_db:/app/mlflow_data
+    restart: unless-stopped
+    networks:
+      - kronector-net
+
+  # --------------------------------------------------------------------------
+  # Nginx — Reverse proxy (optional, for custom domain / HTTPS)
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: kronector-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - kronector-net
+
+volumes:
+  model_data:
+    driver: local
+  app_data:
+    driver: local
+  mlflow_db:
+    driver: local
+
+networks:
+  kronector-net:
+    driver: bridge
