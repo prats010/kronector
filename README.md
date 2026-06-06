@@ -91,6 +91,20 @@
 
 ---
 
+## 🎥 Live Demos
+
+### Swagger API Prediction
+See the backend multi-agent pipeline in action via the interactive `/predict/f1` endpoint:
+
+![Swagger API Prediction](assets/swagger_api_prediction.webp)
+
+### Vercel App Prediction
+See the frontend dashboard providing the win probability, AI insight, and SHAP key factors:
+
+![Vercel App Prediction](assets/vercel_prediction.webp)
+
+---
+
 ## 🏗️ The Pit Wall — Multi-Agent Architecture
 
 Every prediction passes through a strict 4-agent pipeline. No shortcuts. No hallucinations.
