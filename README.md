@@ -96,7 +96,7 @@
 ### Swagger API Prediction
 See the backend multi-agent pipeline in action via the interactive `/predict/f1` endpoint:
 
-![Swagger API Prediction](assets/swagger_api_prediction.webp)
+<video src="https://github.com/prats010/kronector/raw/main/assets/swagger_ui.mp4" controls="controls" muted="muted" style="max-width: 100%;"></video>
 
 ### Vercel App Prediction
 See the frontend dashboard providing the win probability, AI insight, and SHAP key factors:
