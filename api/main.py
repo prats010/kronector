@@ -51,6 +51,40 @@ _races_data: pd.DataFrame | None = None
 _drivers_set: set[str] = set()
 
 
+def patch_mlruns_paths():
+    """Locate all meta.yaml files in mlruns/ and dynamically update their absolute paths
+    to point to the current active workspace directory. This ensures MLflow runs can be
+    loaded correctly on different hosts (e.g. locally or in Hugging Face Spaces).
+    """
+    import re
+    from pathlib import Path
+
+    current_dir = Path(__file__).resolve().parent.parent
+    mlruns_dir = current_dir / "mlruns"
+    if not mlruns_dir.exists():
+        logger.warning("mlruns directory not found, skipping path patching")
+        return
+        
+    new_base_uri = mlruns_dir.resolve().as_uri()
+    logger.info(f"Dynamically patching mlruns URIs to: {new_base_uri}")
+    
+    pattern = re.compile(r"file:///[^\n]*?/mlruns")
+    
+    patched_count = 0
+    for meta_path in mlruns_dir.rglob("meta.yaml"):
+        try:
+            content = meta_path.read_text(encoding="utf-8")
+            new_content = pattern.sub(new_base_uri, content)
+            if new_content != content:
+                meta_path.write_text(new_content, encoding="utf-8")
+                patched_count += 1
+        except Exception as e:
+            logger.error(f"Failed to patch {meta_path}: {e}")
+            
+    if patched_count > 0:
+        logger.info(f"Successfully patched {patched_count} meta.yaml files with current workspace path.")
+
+
 # ============================================================================
 # Lifespan events
 # ============================================================================
@@ -68,6 +102,18 @@ async def lifespan(app: FastAPI):
         from dotenv import load_dotenv
         
         load_dotenv()  # Load variables from .env file
+        
+        # Ensure MLFLOW_TRACKING_URI is set correctly to local mlruns if empty or unset
+        if not os.getenv("MLFLOW_TRACKING_URI"):
+            os.environ["MLFLOW_TRACKING_URI"] = "./mlruns"
+            logger.info("Setting MLFLOW_TRACKING_URI to default ./mlruns")
+            
+        # Dynamically patch meta.yaml files to handle environment transitions
+        try:
+            patch_mlruns_paths()
+        except Exception as e:
+            logger.warning(f"Error during mlruns path patching: {e}")
+
         run_id = os.getenv("KRONECTOR_MODEL_RUN_ID")
         if run_id:
             try:
