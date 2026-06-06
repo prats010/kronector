@@ -58,4 +58,6 @@ EOF
 # HF Spaces expects port 7860
 EXPOSE 7860
 
+ENV MLFLOW_ALLOW_FILE_STORE=true
+
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

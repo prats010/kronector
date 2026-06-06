@@ -103,6 +103,9 @@ async def lifespan(app: FastAPI):
         
         load_dotenv()  # Load variables from .env file
         
+        # Allow MLflow to use the local filesystem store (required in MLflow 2.13+)
+        os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
+        
         # Ensure MLFLOW_TRACKING_URI is set correctly to local mlruns if empty or unset
         if not os.getenv("MLFLOW_TRACKING_URI"):
             os.environ["MLFLOW_TRACKING_URI"] = "./mlruns"

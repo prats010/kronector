@@ -41,5 +41,6 @@ EXPOSE 7860
 
 # Default model run ID
 ENV KRONECTOR_MODEL_RUN_ID=8d8d20f14dce44d991c5fccfdc090a68
+ENV MLFLOW_ALLOW_FILE_STORE=true
 
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "7860"]

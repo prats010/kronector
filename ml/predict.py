@@ -19,8 +19,19 @@ def load_model_and_encoders(run_id: str):
     """Load a logged MLflow model and its fitted categorical encoders."""
     import mlflow.lightgbm
     from mlflow.artifacts import download_artifacts
+    import logging
+    
+    logger = logging.getLogger(__name__)
 
-    model = mlflow.lightgbm.load_model(f"runs:/{run_id}/model")
+    try:
+        model = mlflow.lightgbm.load_model(f"runs:/{run_id}/model")
+    except Exception as e:
+        logger.warning(f"Could not load from runs:/ URI: {e}. Trying registered model...")
+        try:
+            model = mlflow.lightgbm.load_model("models:/kronector-f1-lgbm/latest")
+        except Exception as e2:
+            logger.error(f"Failed to load registered model: {e2}")
+            raise
     encoder_path = download_artifacts(
         run_id=run_id, artifact_path="encoders/label_encoders.pkl"
     )
