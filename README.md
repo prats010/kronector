@@ -1,3 +1,12 @@
+---
+title: Kronector F1 Strategy AI
+emoji: 🏎️
+colorFrom: red
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
 <div align="center">
 
 <!-- Badges Row 1: Status -->
