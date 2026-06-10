@@ -16,9 +16,12 @@ else:
 # Start uvicorn
 if __name__ == "__main__":
     import uvicorn
+    port = int(os.getenv("PORT", 8080))
+    print(f"  Starting on http://127.0.0.1:{port}")
     uvicorn.run(
         "api.main:app",
         host="127.0.0.1",
-        port=8000,
+        port=port,
         reload=False,
     )
+

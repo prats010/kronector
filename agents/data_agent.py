@@ -159,7 +159,7 @@ def _load_feature_data(data_path: str | Path) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
-def _filter_by_intent(df: pd.DataFrame, intent: QueryIntent) -> pd.DataFrame:
+def _filter_by_intent(df: pd.DataFrame, intent: QueryIntent, filter_driver: bool = True) -> pd.DataFrame:
     rows = df[df["season"] == intent["season"]].copy()
     
     round_num = intent.get("round")
@@ -187,6 +187,9 @@ def _filter_by_intent(df: pd.DataFrame, intent: QueryIntent) -> pd.DataFrame:
         raise ValueError(
             f"No rows found for season={intent['season']} round={round_num} grand_prix={grand_prix}"
         )
+
+    if not filter_driver:
+        return rows.reset_index(drop=True)
 
     driver_id = _normalize_driver_id(intent.get("driver_id"))
     driver_name = intent.get("driver_name")

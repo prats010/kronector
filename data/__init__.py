@@ -61,6 +61,85 @@ def _get_track_type(circuit_id: str) -> str:
     return "permanent"
 
 
+def compute_pole_conversion_rate(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute historical pole-to-win conversion rate per circuit.
+
+    For each circuit, calculates what % of races the pole-sitter went on to win.
+    This directly encodes "qualifying matters at this track" — e.g.:
+      - Monaco ~75-80% (almost impossible to overtake)
+      - Monza ~40-45% (long straights, slipstream, DRS)
+
+    Uses only COMPLETED races (requires finish_position data).
+
+    Args:
+        df: Historical race DataFrame with circuit_id, grid_position, finish_position
+
+    Returns:
+        DataFrame with columns (circuit_id, pole_conversion_rate)
+    """
+    if df.empty or "finish_position" not in df.columns:
+        return pd.DataFrame(columns=["circuit_id", "pole_conversion_rate"])
+
+    # Only use rows where we have actual race results
+    completed = df.dropna(subset=["finish_position"]).copy()
+
+    # Get pole-sitters (grid_position == 1) for each race
+    poles = completed[completed["grid_position"] == 1].copy()
+
+    if poles.empty:
+        return pd.DataFrame(columns=["circuit_id", "pole_conversion_rate"])
+
+    poles["pole_won"] = (poles["finish_position"] == 1).astype(int)
+
+    global_mean = poles["pole_won"].mean()
+    C = 3.0  # Confidence weight (pseudo-observations)
+
+    # Calculate wins and total poles per circuit
+    stats = poles.groupby("circuit_id").agg(
+        wins=("pole_won", "sum"),
+        total=("pole_won", "count")
+    ).reset_index()
+
+    # Apply Bayesian smoothing: pulls low-N circuits towards the global average
+    stats["pole_conversion_rate"] = (stats["wins"] + C * global_mean) / (stats["total"] + C)
+    
+    conversion = stats[["circuit_id", "pole_conversion_rate"]]
+
+    logger.info(
+        f"Computed pole_conversion_rate for {len(conversion)} circuits. "
+        f"Range: {conversion['pole_conversion_rate'].min():.1%} – "
+        f"{conversion['pole_conversion_rate'].max():.1%}"
+    )
+
+    return conversion
+
+    return conversion
+
+
+# ---------------------------------------------------------------------------
+# Career Race Starts computation
+# ---------------------------------------------------------------------------
+
+def compute_career_race_starts(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute cumulative career race starts for each driver before each race.
+    This provides an 'experience' feature so the model knows if driver form
+    is based on a veteran's long track record or a rookie's small sample size.
+    """
+    if df.empty or "driver_id" not in df.columns:
+        return pd.DataFrame(columns=["season", "round", "driver_id", "career_race_starts"])
+        
+    # Sort chronologically
+    df_sorted = df.sort_values(by=["driver_id", "season", "round"]).copy()
+    
+    # cumcount() gives 0 for the 1st race, 1 for the 2nd, etc.
+    # This exactly represents 'starts prior to this race'
+    df_sorted["career_race_starts"] = df_sorted.groupby("driver_id").cumcount()
+    
+    return df_sorted[["season", "round", "driver_id", "career_race_starts"]]
+
+
 # ---------------------------------------------------------------------------
 # Safety car probability computation (Correction 2)
 # ---------------------------------------------------------------------------
@@ -297,6 +376,35 @@ def merge_datasets(
         logger.warning(
             "No lap data — safety_car_probability set to 0 for all rows"
         )
+
+    # -------------------------------------------------------------------
+    # Step 8.3: Compute career_race_starts per driver
+    # -------------------------------------------------------------------
+    starts_df = compute_career_race_starts(merged)
+    if not starts_df.empty:
+        if "career_race_starts" in merged.columns:
+            merged = merged.drop(columns=["career_race_starts"])
+        merged = merged.merge(starts_df, on=["season", "round", "driver_id"], how="left")
+        merged["career_race_starts"] = merged["career_race_starts"].fillna(0)
+        logger.info("Joined career_race_starts from cumulative history")
+    else:
+        merged["career_race_starts"] = 0
+        logger.warning("Could not compute career_race_starts — defaulting to 0")
+
+    # -------------------------------------------------------------------
+    # Step 8.5: Compute pole_conversion_rate per circuit
+    # -------------------------------------------------------------------
+    pcr = compute_pole_conversion_rate(merged)
+    if not pcr.empty:
+        if "pole_conversion_rate" in merged.columns:
+            merged = merged.drop(columns=["pole_conversion_rate"])
+        merged = merged.merge(pcr, on="circuit_id", how="left")
+        # Circuits with no data default to 50% (neutral)
+        merged["pole_conversion_rate"] = merged["pole_conversion_rate"].fillna(0.5)
+        logger.info("Joined pole_conversion_rate from historical data")
+    else:
+        merged["pole_conversion_rate"] = 0.5
+        logger.warning("Could not compute pole_conversion_rate — defaulting to 0.5")
 
     # -------------------------------------------------------------------
     # Step 9: Add target variable

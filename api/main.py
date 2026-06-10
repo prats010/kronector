@@ -26,6 +26,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from agents.data_agent import data_agent, QueryIntent
+from agents.critique_agent import critique_agent
+from agents.synthesis_agent import synthesis_agent
+from agents.compare_agent import compare_agent
 from api.schemas import (
     DriverInfo,
     ErrorResponse,
@@ -34,6 +37,8 @@ from api.schemas import (
     PredictionRequest,
     PredictionResponse,
     RaceInfo,
+    CompareRequest,
+    CompareResponse
 )
 from ml.predict import load_model_and_encoders, predict_dataframe
 
@@ -49,6 +54,7 @@ _model = None
 _encoders = None
 _races_data: pd.DataFrame | None = None
 _drivers_set: set[str] = set()
+_prerace_data: dict[str, pd.DataFrame] = {}  # keyed by "season_round" e.g. "2026_7"
 
 
 def patch_mlruns_paths():
@@ -139,6 +145,22 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning(f"Data not found: {data_path}")
 
+        # Load any pre-race parquet files from data_output/prerace/
+        prerace_dir = Path("data_output/prerace")
+        if prerace_dir.exists():
+            for pf in prerace_dir.glob("*.parquet"):
+                try:
+                    prerace_df = pd.read_parquet(pf)
+                    if not prerace_df.empty:
+                        season = int(prerace_df["season"].iloc[0])
+                        round_num = int(prerace_df["round"].iloc[0])
+                        key = f"{season}_{round_num}"
+                        _prerace_data[key] = prerace_df
+                        circuit = prerace_df["circuit_id"].iloc[0]
+                        logger.info(f"✓ Pre-race data loaded: {key} ({circuit}) — {len(prerace_df)} drivers")
+                except Exception as e:
+                    logger.warning(f"Could not load pre-race file {pf}: {e}")
+
     except Exception as e:
         logger.error(f"Startup error: {e}")
 
@@ -215,27 +237,77 @@ async def predict_f1(request: PredictionRequest) -> PredictionResponse:
             detail="Model not loaded. Set KRONECTOR_MODEL_RUN_ID.",
         )
 
-    if _races_data is None:
+    if _races_data is None and not _prerace_data:
         raise HTTPException(
             status_code=503,
             detail="Race data not loaded. Check data_output/fastf1_races.parquet",
         )
 
     try:
-        # Parse query → intent
-        result = data_agent(request.query)
-        intent = result["intent"]
-        df = result["dataframe"]
+        # Parse query → intent using the main historical parquet
+        # If the round isn't in the main parquet, fall back to pre-race data
+        from agents.data_agent import parse_query_with_groq, _filter_by_intent
+        intent = parse_query_with_groq(request.query)
 
-        if len(df) == 0:
+        df = pd.DataFrame()
+        is_prerace = False
+
+        # 1. Try the main historical parquet first
+        if _races_data is not None:
+            try:
+                df = _filter_by_intent(_races_data, intent, filter_driver=False)
+            except (ValueError, KeyError):
+                df = pd.DataFrame()
+
+        # 2. If not found in historical data, try pre-race data
+        if df.empty and _prerace_data:
+            logger.info(f"Round not in historical data — searching pre-race store for intent: {intent}")
+            for key, prerace_df in _prerace_data.items():
+                try:
+                    df = _filter_by_intent(prerace_df, intent, filter_driver=False)
+                    if not df.empty:
+                        is_prerace = True
+                        logger.info(f"✓ Found match in pre-race data: {key}")
+                        break
+                except (ValueError, KeyError):
+                    continue
+
+        if df.empty:
             raise HTTPException(
                 status_code=400,
-                detail=f"No matching data for query. "
-                f"Season {intent['season']}, round {intent['round']}",
+                detail=(
+                    f"No matching data for query. Season={intent.get('season')}, "
+                    f"GP='{intent.get('grand_prix')}'. "
+                    "If this is an upcoming race, run: "
+                    "python -m scripts.build_prerace_rows --season <year> --round <num>"
+                ),
             )
 
         # Generate predictions
         predictions = predict_dataframe(df, _model, _encoders, explain=True)
+        
+        # Get top 3 contenders for context before filtering
+        top_df = predictions.sort_values(by="win_probability", ascending=False).head(3)
+        top_contenders = ", ".join(
+            [f"{r['driver_name']} ({r['win_probability']*100:.1f}%)" for _, r in top_df.iterrows()]
+        )
+        
+        # Now filter down to the requested driver if specified
+        driver_id = intent.get("driver_id")
+        driver_name = intent.get("driver_name")
+        
+        import re
+        if driver_id:
+            d_id = str(driver_id).strip().upper()
+            predictions = predictions[predictions["driver_id"].astype(str).str.upper() == d_id]
+        elif driver_name:
+            d_name = str(driver_name).strip().lower()
+            predictions = predictions[
+                predictions["driver_name"].astype(str).str.lower().str.contains(re.escape(d_name), na=False)
+            ]
+            
+        if predictions.empty:
+            raise HTTPException(status_code=400, detail=f"No predictions matched driver intent: {intent}")
         
         # If the user asked "Who will win?" and matched multiple drivers,
         # sort by probability to find the most likely winner!
@@ -244,6 +316,14 @@ async def predict_f1(request: PredictionRequest) -> PredictionResponse:
             
         pred_row = predictions.iloc[0]
         
+        # grid_position is stripped from metadata by predict_dataframe — look it up
+        # directly from the source df using the matched driver_id.
+        matched_driver_id = str(pred_row["driver_id"])
+        grid_pos_series = df.loc[
+            df["driver_id"].astype(str) == matched_driver_id, "grid_position"
+        ]
+        grid_pos = float(grid_pos_series.iloc[0]) if not grid_pos_series.empty else 0.0
+
         # 1. Format raw prediction output
         raw_prob = float(pred_row["win_probability"])
         shap_values = pred_row.get("shap_values", {})
@@ -254,24 +334,26 @@ async def predict_f1(request: PredictionRequest) -> PredictionResponse:
             "feature_names": list(shap_values.keys()) if shap_values else [],
             "model_version": "latest",
             "run_id": "api",
-            "driver_name": str(pred_row["driver_name"])
+            "driver_name": str(pred_row["driver_name"]),
+            "is_prerace": is_prerace,
+            "quali_status": "Crash" if getattr(request, "crashed_in_quali", False) else str(pred_row.get("quali_status", "Finished")),
         }
         
         # 2. Mathematical Critique
         critique = critique_agent(prediction_output)
         
         # 3. LLM Synthesis
-        synthesis = synthesis_agent(request.query, prediction_output, critique)
+        synthesis = synthesis_agent(request.query, prediction_output, critique, top_contenders=top_contenders)
 
         return PredictionResponse(
-            win_probability=raw_prob,
+            win_probability=round(raw_prob * 100, 2),
             metadata=PredictionMetadata(
                 season=int(pred_row["season"]),
                 round=int(pred_row["round"]),
                 driver_id=str(pred_row["driver_id"]),
                 driver_name=str(pred_row["driver_name"]),
                 team=str(pred_row["team"]),
-                grid_position=float(pred_row.get("grid_position", 0.0)),  # Default if missing
+                grid_position=grid_pos,
             ),
             shap_values=shap_values,
             llm_explanation=synthesis["final_response"],
@@ -287,6 +369,151 @@ async def predict_f1(request: PredictionRequest) -> PredictionResponse:
         raise HTTPException(
             status_code=500, detail="Internal prediction error"
         ) from e
+
+
+@app.post(
+    "/predict/compare",
+    response_model=CompareResponse,
+    description="Compare two drivers head-to-head using mathematical SHAP Deltas",
+    tags=["Prediction"]
+)
+def compare_drivers(request: CompareRequest):
+    """Head-to-head driver matchup endpoint."""
+    if _model is None or _encoders is None:
+        raise HTTPException(
+            status_code=503, detail="Model not loaded. Set KRONECTOR_MODEL_RUN_ID."
+        )
+
+    try:
+        import re
+        import json
+        is_prerace = False
+        df = pd.DataFrame()
+        race_name = "Unknown Race"
+
+        # 1. Season and round specified?
+        if request.season and request.round:
+            prerace_file = Path(f"data_output/prerace/prerace_*_{request.season}.parquet")
+            import glob
+            files = glob.glob(str(prerace_file))
+            
+            found = False
+            for f in files:
+                pdf = pd.read_parquet(f)
+                if not pdf.empty and int(pdf["season"].iloc[0]) == request.season and int(pdf["round"].iloc[0]) == request.round:
+                    df = pdf
+                    is_prerace = True
+                    race_name = f"{request.season} Round {request.round}"
+                    found = True
+                    break
+            
+            if not found:
+                global _races_data
+                if _races_data is not None and not _races_data.empty:
+                    df = _races_data[
+                        (_races_data["season"] == request.season) & 
+                        (_races_data["round"] == request.round)
+                    ]
+                    race_name = f"{request.season} Round {request.round}"
+        
+        # 2. No season/round specified, use latest
+        if df.empty:
+            prerace_dir = Path("data_output/prerace")
+            if prerace_dir.exists():
+                files = list(prerace_dir.glob("*.parquet"))
+                if files:
+                    df = pd.read_parquet(files[0])
+                    is_prerace = True
+                    s = int(df["season"].iloc[0])
+                    r = int(df["round"].iloc[0])
+                    race_name = f"{s} Round {r}"
+            
+            if df.empty and _races_data is not None and not _races_data.empty:
+                latest_season = _races_data["season"].max()
+                latest_round = _races_data[_races_data["season"] == latest_season]["round"].max()
+                df = _races_data[
+                    (_races_data["season"] == latest_season) & 
+                    (_races_data["round"] == latest_round)
+                ]
+                race_name = f"{latest_season} Round {latest_round}"
+
+        if df.empty:
+            raise HTTPException(status_code=400, detail="Could not find race data for comparison.")
+
+        predictions = predict_dataframe(df, _model, _encoders, explain=True)
+
+        d1_str = request.driver1.strip().lower()
+        d1_df = predictions[
+            (predictions["driver_id"].str.lower() == d1_str) | 
+            (predictions["driver_name"].str.lower().str.contains(re.escape(d1_str), na=False))
+        ]
+        if d1_df.empty:
+            raise HTTPException(status_code=400, detail=f"Driver '{request.driver1}' not found in race {race_name}.")
+        d1_row = d1_df.iloc[0]
+
+        d2_str = request.driver2.strip().lower()
+        d2_df = predictions[
+            (predictions["driver_id"].str.lower() == d2_str) | 
+            (predictions["driver_name"].str.lower().str.contains(re.escape(d2_str), na=False))
+        ]
+        if d2_df.empty:
+            raise HTTPException(status_code=400, detail=f"Driver '{request.driver2}' not found in race {race_name}.")
+        d2_row = d2_df.iloc[0]
+
+        d1_prob = float(d1_row["win_probability"]) * 100
+        d2_prob = float(d2_row["win_probability"]) * 100
+
+        d1_shap = d1_row["shap_values"]
+        d2_shap = d2_row["shap_values"]
+        if isinstance(d1_shap, str):
+            d1_shap = json.loads(d1_shap)
+        if isinstance(d2_shap, str):
+            d2_shap = json.loads(d2_shap)
+        
+        deltas = {}
+        for feature in d1_shap.keys():
+            if feature in d2_shap:
+                deltas[feature] = d1_shap[feature] - d2_shap[feature]
+
+        llm_analysis = compare_agent(
+            driver1_name=str(d1_row["driver_name"]),
+            driver1_prob=d1_prob,
+            driver1_status=str(d1_row.get("quali_status", "Finished")),
+            driver2_name=str(d2_row["driver_name"]),
+            driver2_prob=d2_prob,
+            driver2_status=str(d2_row.get("quali_status", "Finished")),
+            shap_deltas=deltas,
+            race_context=f"{race_name} {'(Pre-Race)' if is_prerace else '(Historical)'}"
+        )
+
+        return CompareResponse(
+            driver1=PredictionMetadata(
+                season=int(d1_row["season"]),
+                round=int(d1_row["round"]),
+                driver_id=str(d1_row["driver_id"]),
+                driver_name=str(d1_row["driver_name"]),
+                team=str(d1_row["team"]),
+                grid_position=float(d1_row.get("grid_position", 0.0)),
+            ),
+            driver2=PredictionMetadata(
+                season=int(d2_row["season"]),
+                round=int(d2_row["round"]),
+                driver_id=str(d2_row["driver_id"]),
+                driver_name=str(d2_row["driver_name"]),
+                team=str(d2_row["team"]),
+                grid_position=float(d2_row.get("grid_position", 0.0)),
+            ),
+            driver1_win_probability=round(d1_prob, 2),
+            driver2_win_probability=round(d2_prob, 2),
+            shap_deltas=deltas,
+            llm_analysis=llm_analysis
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Compare prediction error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Comparison failed: {e}")
 
 
 @app.get("/drivers", response_model=list[DriverInfo])

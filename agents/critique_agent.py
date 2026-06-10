@@ -17,16 +17,26 @@ def critique_agent(prediction: PredictionOutput) -> CritiqueOutput:
     """Critiques the prediction mathematically to safeguard the LLM."""
     prob = prediction["probability"]
     shap_values = prediction["shap_values"]
+    is_prerace = prediction.get("is_prerace", False)
     
     approved = True
     confidence_rating = "Normal"
     critique_notes = ""
     
     # 1. Evaluate Probability Thresholds
-    if prob < 0.20:
+    # Pre-race predictions use a lower threshold (5% = true random chance in a 22-car field)
+    # because features like tires/weather are missing and probabilities are naturally spread thin.
+    # Post-race/historical queries use the stricter 20% threshold.
+    reject_threshold = 0.05 if is_prerace else 0.20
+    
+    if prob < reject_threshold:
         approved = False
         confidence_rating = "Low"
-        critique_notes += f"REJECTED: Win probability is {prob:.1%}, which is below the 20% threshold. The model is guessing. Do not make a definitive prediction.\n\n"
+        context = "pre-race estimate" if is_prerace else "historical query"
+        critique_notes += f"REJECTED: Win probability is {prob:.1%}, below the {reject_threshold:.0%} threshold for a {context}. The model is not confident.\n\n"
+    elif is_prerace and prob < 0.20:
+        confidence_rating = "PreRace"
+        critique_notes += f"PRE-RACE ESTIMATE: Win probability is {prob:.1%}. This is a pre-race prediction using qualifying data only — tires, weather, and race pace data are unavailable. Rankings are meaningful but absolute probabilities are lower than post-race queries.\n\n"
     elif prob > 0.95:
         confidence_rating = "Overconfident"
         critique_notes += f"FLAGGED: Win probability is unusually high ({prob:.1%}). In modern F1, >95% confidence may indicate data leakage or a hyper-dominant driver in the dataset. Proceed with caution.\n\n"

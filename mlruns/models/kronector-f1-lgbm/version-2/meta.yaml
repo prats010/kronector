@@ -10,7 +10,7 @@ run_link: null
 source: models:/m-9588d06eca6642f5813cd365b7e7f2ad
 status: READY
 status_message: null
-storage_location: file:///C:/Users/Lenovo/OneDrive/Desktop/kronector/mlruns/563634279953604033/models/m-9588d06eca6642f5813cd365b7e7f2ad/artifacts
+storage_location: file:///D:/kronector/mlruns/563634279953604033/models/m-9588d06eca6642f5813cd365b7e7f2ad/artifacts
 user_id: null
 version: 2
 workspace: default

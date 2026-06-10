@@ -54,7 +54,9 @@ def enable_cache(cache_dir: Optional[str] = None) -> None:
 # ---------------------------------------------------------------------------
 
 def _load_session(
-    season: int, round_num: int, session_type: str
+    season: int, round_num: int, session_type: str,
+    laps: bool = True, telemetry: bool = False,
+    weather: bool = True, messages: bool = False,
 ) -> Optional[fastf1.core.Session]:
     """
     Load a FastF1 session with error handling.
@@ -63,13 +65,17 @@ def _load_session(
         season: F1 season year (2018–2026)
         round_num: Race round number within season
         session_type: One of 'R' (Race), 'Q' (Qualifying), 'FP2', 'FP3'
+        laps: Load lap timing data (default True)
+        telemetry: Load car telemetry (default False — not needed for features)
+        weather: Load weather data (default True)
+        messages: Load race control messages (default False)
 
     Returns:
         Loaded FastF1 Session object, or None if unavailable.
     """
     try:
         session = fastf1.get_session(season, round_num, session_type)
-        session.load()
+        session.load(laps=laps, telemetry=telemetry, weather=weather, messages=messages)
         return session
     except Exception as e:
         logger.warning(

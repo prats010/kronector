@@ -37,6 +37,8 @@ BASE_REQUIRED_COLUMNS = {
 SECTOR_COLUMNS = ["sector_1_time", "sector_2_time", "sector_3_time"]
 
 NUMERIC_FEATURES = [
+    # ── Pre-race features only ──
+    # Grid & qualifying
     "season",
     "grid_position",
     "sector_1_time",
@@ -46,17 +48,18 @@ NUMERIC_FEATURES = [
     "sector_2_time_era_norm",
     "sector_3_time_era_norm",
     "avg_lap_time_practice",
-    "tire_compound",
-    "tire_age_laps",
-    "fresh_tire",
-    "pit_stop_count",
-    "team_pit_speed",
-    "weather_temp_track",
-    "weather_rainfall",
+    # Driver & championship context
     "championship_standing",
     "driver_form_last3",
+    # Circuit context
     "safety_car_probability",
     "telemetry_available",
+    "pole_conversion_rate",
+    # Driver experience
+    "career_race_starts",
+    # NOTE: Race-day features removed (tire_compound, tire_age_laps,
+    # fresh_tire, pit_stop_count, team_pit_speed, weather_temp_track,
+    # weather_rainfall) — these cause data leakage for pre-race predictions.
 ]
 
 CATEGORICAL_FEATURES = ["team", "track_type", "regulation_era"]
@@ -68,6 +71,14 @@ LEAKAGE_COLUMNS = {
     "driver_id",
     "circuit_id",
     TARGET_COLUMN,
+    # Race-day features that we don't have before the race
+    "tire_compound",
+    "tire_age_laps",
+    "fresh_tire",
+    "pit_stop_count",
+    "team_pit_speed",
+    "weather_temp_track",
+    "weather_rainfall",
 }
 
 EXCLUDED_FEATURE_COLUMNS = LEAKAGE_COLUMNS | {"round"}
@@ -294,7 +305,7 @@ def prepare_model_data(
 
     metadata_columns = [
         column
-        for column in ["season", "round", "driver_id", "driver_name", "team"]
+        for column in ["season", "round", "driver_id", "driver_name", "team", "grid_position", "quali_status"]
         if column in prepared.columns
     ]
     metadata = prepared[metadata_columns].copy()
