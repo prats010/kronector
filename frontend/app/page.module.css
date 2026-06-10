@@ -274,3 +274,92 @@
   font-size: 0.85rem;
   font-family: var(--font-geist-mono), monospace;
 }
+
+/* Tabs */
+.tabsContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.tabBtn {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--text-muted);
+  padding: 0.75rem 2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-family: inherit;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.tabBtn:hover {
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--neon-cyan);
+}
+
+.tabActive {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+/* Compare Form */
+.compareForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.compareInputsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.vsText {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.compareInputsRowSmall {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.compareSubmitBtn {
+  background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05));
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 1rem 2rem;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: var(--transition-fast);
+}
+
+.compareSubmitBtn:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.2);
+  box-shadow: var(--shadow-glow);
+}
+
+.compareSubmitBtn:disabled {
+  border-color: rgba(0, 240, 255, 0.1);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  background: transparent;
+}

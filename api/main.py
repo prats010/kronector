@@ -628,6 +628,132 @@ async def root():
         "health": "/health",
     }
 
+@app.post(
+    "/predict/compare",
+    response_model=CompareResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Invalid query or driver not found"},
+        503: {"model": ErrorResponse, "description": "Model not loaded"},
+    },
+)
+async def predict_compare(request: CompareRequest) -> CompareResponse:
+    """
+    Head-to-Head Driver Comparison.
+    """
+    if _model is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Model not loaded. Set KRONECTOR_MODEL_RUN_ID.",
+        )
+
+    if _races_data is None and not _prerace_data:
+        raise HTTPException(
+            status_code=503,
+            detail="Race data not loaded. Check data_output/fastf1_races.parquet",
+        )
+
+    season = request.season
+    round_num = request.round
+
+    # If not provided, find the latest pre-race data or historical data
+    if not season or not round_num:
+        if _prerace_data:
+            latest_key = list(_prerace_data.keys())[-1]
+            season, round_num = map(int, latest_key.split("_"))
+        elif _races_data is not None:
+            season = int(_races_data["season"].max())
+            round_num = int(_races_data[_races_data["season"] == season]["round"].max())
+
+    df = pd.DataFrame()
+    key = f"{season}_{round_num}"
+    if _prerace_data and key in _prerace_data:
+        df = _prerace_data[key].copy()
+    elif _races_data is not None:
+        df = _races_data[(_races_data["season"] == season) & (_races_data["round"] == round_num)].copy()
+
+    if df.empty:
+        raise HTTPException(
+            status_code=400,
+            detail=f"No data for season {season} round {round_num}"
+        )
+
+    # Find driver 1 and driver 2
+    def find_driver(driver_str: str, data: pd.DataFrame):
+        driver_str = driver_str.lower()
+        match = data[data["driver_id"].str.lower() == driver_str]
+        if match.empty:
+            match = data[data["driver_name"].str.lower().str.contains(driver_str)]
+        return match
+
+    d1_df = find_driver(request.driver1, df)
+    d2_df = find_driver(request.driver2, df)
+
+    if d1_df.empty:
+        raise HTTPException(status_code=400, detail=f"Driver 1 '{request.driver1}' not found in race")
+    if d2_df.empty:
+        raise HTTPException(status_code=400, detail=f"Driver 2 '{request.driver2}' not found in race")
+
+    d1_row = d1_df.iloc[[0]]
+    d2_row = d2_df.iloc[[0]]
+
+    # Generate predictions
+    from ml.predict import predict_dataframe
+    d1_pred = predict_dataframe(d1_row, _model, _encoders, explain=True)
+    d2_pred = predict_dataframe(d2_row, _model, _encoders, explain=True)
+
+    d1_prob = float(d1_pred["win_probability"].iloc[0])
+    d2_prob = float(d2_pred["win_probability"].iloc[0])
+
+    d1_shap = d1_pred["shap_values"].iloc[0]
+    d2_shap = d2_pred["shap_values"].iloc[0]
+
+    # Calculate SHAP deltas (D1 - D2)
+    shap_deltas = {}
+    for feature in d1_shap.keys():
+        shap_deltas[feature] = float(d1_shap[feature] - d2_shap.get(feature, 0.0))
+
+    d1_name = str(d1_row["driver_name"].iloc[0])
+    d2_name = str(d2_row["driver_name"].iloc[0])
+    
+    # Get quali status if available
+    d1_status = str(d1_row.get("quali_status", pd.Series(["Unknown"])).iloc[0]) if "quali_status" in d1_row.columns else "Unknown"
+    d2_status = str(d2_row.get("quali_status", pd.Series(["Unknown"])).iloc[0]) if "quali_status" in d2_row.columns else "Unknown"
+
+    circuit = str(df["circuit_id"].iloc[0])
+    race_context = f"{season} Round {round_num} at {circuit}"
+
+    from agents.compare_agent import compare_agent
+    llm_analysis = compare_agent(
+        driver1_name=d1_name,
+        driver1_prob=d1_prob * 100,
+        driver1_status=d1_status,
+        driver2_name=d2_name,
+        driver2_prob=d2_prob * 100,
+        driver2_status=d2_status,
+        shap_deltas=shap_deltas,
+        race_context=race_context
+    )
+
+    return CompareResponse(
+        driver1=PredictionMetadata(
+            season=season, round=round_num,
+            driver_id=str(d1_row["driver_id"].iloc[0]),
+            driver_name=d1_name,
+            team=str(d1_row["team"].iloc[0]),
+            grid_position=float(d1_row["grid_position"].iloc[0])
+        ),
+        driver2=PredictionMetadata(
+            season=season, round=round_num,
+            driver_id=str(d2_row["driver_id"].iloc[0]),
+            driver_name=d2_name,
+            team=str(d2_row["team"].iloc[0]),
+            grid_position=float(d2_row["grid_position"].iloc[0])
+        ),
+        driver1_win_probability=d1_prob,
+        driver2_win_probability=d2_prob,
+        shap_deltas=shap_deltas,
+        llm_analysis=llm_analysis
+    )
 
 # ============================================================================
 # Error handlers
