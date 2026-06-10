@@ -396,3 +396,8 @@ Built with a passion for Data Science, Artificial Intelligence, and the relentle
 <sub>Built for the passion of racing and the pursuit of perfect data.</sub>
 
 </div>
+
+
+## Model Metrics & Proofs
+
+Check out the [Model Card & Accuracy Proofs](MODEL_CARD.md) for ROC AUC, PR, and SHAP metrics.

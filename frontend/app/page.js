@@ -4,7 +4,7 @@ import { useState } from 'react';
 import styles from './page.module.css';
 
 export default function Home() {
-  const [mode, setMode] = useState('predict'); // 'predict' | 'compare'
+  const [mode, setMode] = useState('predict'); // 'predict' | 'compare' | 'metrics'
   
   // Single predict state
   const [query, setQuery] = useState('');
@@ -113,10 +113,16 @@ export default function Home() {
         >
           Head-to-Head Compare
         </button>
+        <button 
+          className={`${styles.tabBtn} ${mode === 'metrics' ? styles.tabActive : ''}`}
+          onClick={() => { setMode('metrics'); setResult(null); setError(null); }}
+        >
+          Model Metrics
+        </button>
       </div>
 
       <div className={styles.queryContainer}>
-        {mode === 'predict' ? (
+        {mode === 'predict' && (
           <form onSubmit={handleSubmitPredict} className={styles.inputWrapper}>
             <input
               type="text"
@@ -135,7 +141,8 @@ export default function Home() {
               )}
             </button>
           </form>
-        ) : (
+        )}
+        {mode === 'compare' && (
           <form onSubmit={handleSubmitCompare} className={styles.compareForm}>
             <div className={styles.compareInputsRow}>
               <div className={styles.inputWrapper}>
@@ -158,6 +165,35 @@ export default function Home() {
               {loading ? 'Analyzing...' : 'Run Head-to-Head Comparison'}
             </button>
           </form>
+        )}
+        {mode === 'metrics' && (
+          <div className={`${styles.dashboardGrid} animate-fade-in-up`} style={{gridTemplateColumns: '1fr', gap: '2rem', maxWidth: '1000px', margin: '0 auto'}}>
+            <div className={`${styles.panel} glass-panel`}>
+              <h2 className={styles.panelTitle} style={{justifyContent: 'center', fontSize: '1.5rem'}}>KRONECTOR Core Model Metrics</h2>
+              <p className={styles.insightText} style={{textAlign: 'center', marginBottom: '2rem'}}>
+                LightGBM Binary Classifier evaluated on 2023-2024 F1 Race Data.
+              </p>
+              
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem'}}>
+                <div>
+                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>ROC AUC Curve</h3>
+                  <img src="/metrics/roc_curve.png" alt="ROC Curve" style={{width: '100%', borderRadius: '10px'}} />
+                </div>
+                <div>
+                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Precision-Recall Curve</h3>
+                  <img src="/metrics/pr_curve.png" alt="PR Curve" style={{width: '100%', borderRadius: '10px'}} />
+                </div>
+                <div>
+                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Confusion Matrix</h3>
+                  <img src="/metrics/confusion_matrix.png" alt="Confusion Matrix" style={{width: '100%', borderRadius: '10px'}} />
+                </div>
+                <div>
+                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Global Feature Importance</h3>
+                  <img src="/metrics/feature_importance.png" alt="Feature Importance" style={{width: '100%', borderRadius: '10px'}} />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         {error && <div style={{ color: 'var(--neon-red)', marginTop: '1rem', textAlign: 'center' }}>{error}</div>}
       </div>
