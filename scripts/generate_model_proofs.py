@@ -91,7 +91,7 @@ def main():
     
     ax.legend([f'AUC = {roc_auc:.3f}'], loc="lower right", facecolor="#1e293b", edgecolor="#334155", labelcolor="white", fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(args.output_dir, "roc_curve.png"), dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(os.path.join(args.output_dir, "roc_curve.svg"), format="svg", transparent=True, bbox_inches='tight')
     plt.close()
 
     # 2. Precision-Recall Curve
@@ -111,7 +111,7 @@ def main():
     
     ax.legend([f'AUC = {pr_auc:.3f}'], loc="lower left", facecolor="#1e293b", edgecolor="#334155", labelcolor="white", fontsize=12)
     plt.tight_layout()
-    plt.savefig(os.path.join(args.output_dir, "pr_curve.png"), dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(os.path.join(args.output_dir, "pr_curve.svg"), format="svg", transparent=True, bbox_inches='tight')
     plt.close()
 
     # 3. Confusion Matrix
@@ -132,7 +132,7 @@ def main():
     ax.set_yticklabels(['Not Win', 'Win'], color='#94a3b8', fontsize=12, rotation=0)
     
     plt.tight_layout()
-    plt.savefig(os.path.join(args.output_dir, "confusion_matrix.png"), dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(os.path.join(args.output_dir, "confusion_matrix.svg"), format="svg", transparent=True, bbox_inches='tight')
     plt.close()
 
     # 4. Global Feature Importance
@@ -162,7 +162,7 @@ def main():
                 color=cyan, fontweight='bold', va='center', fontsize=11)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(args.output_dir, "feature_importance.png"), dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(os.path.join(args.output_dir, "feature_importance.svg"), format="svg", transparent=True, bbox_inches='tight')
     plt.close()
 
     print(f"Proofs generated successfully in {args.output_dir}")

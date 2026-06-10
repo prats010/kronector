@@ -177,19 +177,19 @@ export default function Home() {
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem'}}>
                 <div>
                   <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>ROC AUC Curve</h3>
-                  <img src="/metrics/roc_curve.png" alt="ROC Curve" style={{width: '100%', borderRadius: '10px'}} />
+                  <img src="/metrics/roc_curve.svg" alt="ROC Curve" style={{width: '100%', borderRadius: '10px'}} />
                 </div>
                 <div>
                   <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Precision-Recall Curve</h3>
-                  <img src="/metrics/pr_curve.png" alt="PR Curve" style={{width: '100%', borderRadius: '10px'}} />
+                  <img src="/metrics/pr_curve.svg" alt="PR Curve" style={{width: '100%', borderRadius: '10px'}} />
                 </div>
                 <div>
                   <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Confusion Matrix</h3>
-                  <img src="/metrics/confusion_matrix.png" alt="Confusion Matrix" style={{width: '100%', borderRadius: '10px'}} />
+                  <img src="/metrics/confusion_matrix.svg" alt="Confusion Matrix" style={{width: '100%', borderRadius: '10px'}} />
                 </div>
                 <div>
                   <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Global Feature Importance</h3>
-                  <img src="/metrics/feature_importance.png" alt="Feature Importance" style={{width: '100%', borderRadius: '10px'}} />
+                  <img src="/metrics/feature_importance.svg" alt="Feature Importance" style={{width: '100%', borderRadius: '10px'}} />
                 </div>
               </div>
             </div>
