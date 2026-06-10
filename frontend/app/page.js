@@ -173,10 +173,10 @@ export default function Home() {
             <div className={styles.gaugeContainer}>
               <div 
                 className={styles.gaugeCircle} 
-                style={{ '--prob': `${(result.win_probability * 100).toFixed(1)}%` }}
+                style={{ '--prob': `${result.win_probability.toFixed(1)}%` }}
               >
                 <span className={styles.gaugeText}>
-                  {(result.win_probability * 100).toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
+                  {result.win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
                 </span>
               </div>
               <div className={styles.gaugeLabel}>
@@ -225,9 +225,9 @@ export default function Home() {
             <div className={styles.gaugeContainer} style={{flexDirection: 'row', gap: '4rem'}}>
               {/* Driver 1 */}
               <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <div className={styles.gaugeCircle} style={{ '--prob': `${(result.driver1_win_probability * 100).toFixed(1)}%` }}>
+                <div className={styles.gaugeCircle} style={{ '--prob': `${result.driver1_win_probability.toFixed(1)}%` }}>
                   <span className={styles.gaugeText}>
-                    {(result.driver1_win_probability * 100).toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
+                    {result.driver1_win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
                   </span>
                 </div>
                 <div className={styles.gaugeLabel}>{result.driver1.driver_name}</div>
@@ -238,9 +238,9 @@ export default function Home() {
 
               {/* Driver 2 */}
               <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <div className={styles.gaugeCircle} style={{ '--prob': `${(result.driver2_win_probability * 100).toFixed(1)}%`, '--neon-cyan': 'var(--neon-red)' }}>
+                <div className={styles.gaugeCircle} style={{ '--prob': `${result.driver2_win_probability.toFixed(1)}%`, '--neon-cyan': 'var(--neon-red)' }}>
                   <span className={styles.gaugeText}>
-                    {(result.driver2_win_probability * 100).toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
+                    {result.driver2_win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
                   </span>
                 </div>
                 <div className={styles.gaugeLabel}>{result.driver2.driver_name}</div>
