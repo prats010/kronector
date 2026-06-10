@@ -1,0 +1,16 @@
+creation_timestamp: 1780900238236
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1780900238236
+model_id: m-69f1a06b3ee8427a9fd097b178f1195e
+name: kronector-f1-lgbm
+run_id: fbb4045281c347e380aedd560ae8e6aa
+run_link: null
+source: models:/m-69f1a06b3ee8427a9fd097b178f1195e
+status: READY
+status_message: null
+storage_location: file:///D:/kronector/mlruns/397654914467683841/models/m-69f1a06b3ee8427a9fd097b178f1195e/artifacts
+user_id: null
+version: 9
+workspace: default

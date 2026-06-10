@@ -1,0 +1,10 @@
+artifact_location: file:///D:/kronector/mlruns/397654914467683841/models/m-69f1a06b3ee8427a9fd097b178f1195e/artifacts
+creation_timestamp: 1780900229664
+experiment_id: '397654914467683841'
+last_updated_timestamp: 1780900238101
+model_id: m-69f1a06b3ee8427a9fd097b178f1195e
+model_type: null
+name: model
+source_run_id: fbb4045281c347e380aedd560ae8e6aa
+status: 2
+status_message: null
