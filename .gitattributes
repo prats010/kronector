@@ -5,3 +5,4 @@ ui/drift_report.html linguist-generated=true
 *.png filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 *.webp filter=lfs diff=lfs merge=lfs -text
+frontend/public/metrics/*.png -filter -diff -merge text
