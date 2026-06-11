@@ -1,42 +1,44 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
 
 @theme {
-  --color-kron-bg: #050816;
-  --color-kron-surface: #0a0d1e;
-  --color-kron-primary: #00E5FF;
-  --color-kron-secondary: #6D5BFF;
-  --color-kron-accent: #E10600;
-  --color-kron-success: #00D084;
-  --color-kron-text: #FFFFFF;
-  --color-kron-muted: #A0A0A0;
-  --color-kron-border: rgba(255, 255, 255, 0.08);
+  --color-saas-bg: #000000;
+  --color-saas-surface: #0A0A0A;
+  --color-saas-card: #111111;
+  --color-saas-border: #222222;
+  --color-saas-border-hover: #333333;
+  --color-saas-text-primary: #EDEDED;
+  --color-saas-text-secondary: #888888;
+  --color-saas-accent: #FFFFFF;
+  --color-saas-blue: #0070F3;
+  --color-saas-red: #E00000;
+  --color-saas-green: #00D084;
 
-  --font-sans: 'Outfit', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Geist Mono', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 }
 
 @layer base {
   :root {
-    --background: 231 63% 5%;
-    --foreground: 0 0% 100%;
-    --card: 231 50% 8%;
-    --card-foreground: 0 0% 100%;
-    --popover: 231 50% 8%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 186 100% 50%;
-    --primary-foreground: 231 63% 5%;
-    --secondary: 247 100% 68%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 63%;
-    --muted-foreground: 0 0% 63%;
-    --accent: 3 100% 45%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 3 100% 45%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 0 0% 93%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 53%;
+    --accent: 0 0% 13%;
+    --accent-foreground: 0 0% 93%;
+    --destructive: 0 100% 44%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 186 100% 50%;
+    --border: 0 0% 13%;
+    --input: 0 0% 13%;
+    --ring: 0 0% 100%;
     --radius: 0.5rem;
   }
 }
@@ -48,26 +50,27 @@
 }
 
 body {
-  background-color: var(--color-kron-bg);
-  color: var(--color-kron-text);
+  background-color: var(--color-saas-bg);
+  color: var(--color-saas-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar for a dense data app */
+/* Elegant minimalist scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-kron-bg);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-kron-border);
+  background: var(--color-saas-border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-kron-muted);
+  background: var(--color-saas-border-hover);
 }
