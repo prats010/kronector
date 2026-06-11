@@ -1,60 +1,45 @@
----
-title: Kronector F1 Strategy AI
-emoji: 🏎️
-colorFrom: red
-colorTo: gray
-sdk: docker
-app_port: 7860
-pinned: false
----
 <div align="center">
 
-<!-- Badges Row 1: Status -->
-<img src="https://img.shields.io/badge/🏁_STATUS-LIGHTS_OUT-00D800?style=for-the-badge&labelColor=1a1a2e" alt="Status">
-<img src="https://img.shields.io/badge/LAPS_COMPLETED-2014--2026-E10600?style=for-the-badge&labelColor=1a1a2e" alt="Seasons">
-<img src="https://img.shields.io/badge/PIT_CREW-4_AGENTS-7B2FF7?style=for-the-badge&labelColor=1a1a2e" alt="Agents">
+# Kronector: F1 Race Outcome Prediction & MLOps System
 
-<br>
+*An End-to-End Machine Learning Pipeline for Formula 1 Strategy and Intelligence.*
 
-<!-- Badges Row 2: Tech -->
-<img src="https://img.shields.io/badge/ENGINE-LightGBM-FF6B00?style=flat-square&logo=scikit-learn&logoColor=white" alt="LightGBM">
-<img src="https://img.shields.io/badge/TELEMETRY-MLflow-0194E2?style=flat-square&logo=mlflow&logoColor=white" alt="MLflow">
-<img src="https://img.shields.io/badge/COMMS-Llama_3.3_70B-7B2FF7?style=flat-square&logo=meta&logoColor=white" alt="Llama3">
-<img src="https://img.shields.io/badge/PIT_LANE-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI">
-<img src="https://img.shields.io/badge/XAI-SHAP-FF4500?style=flat-square" alt="SHAP">
-<img src="https://img.shields.io/badge/DRIFT-Evidently_AI-FF6F61?style=flat-square" alt="Evidently">
+[![Live Demo](https://img.shields.io/badge/Live_App-Ready-00f0ff?style=for-the-badge&logo=vercel&logoColor=black)](#)
+[![API Docs](https://img.shields.io/badge/API_Docs-Swagger-009688?style=for-the-badge&logo=fastapi&logoColor=white)](#)
+[![Technical Report](https://img.shields.io/badge/Technical_Report-Read_Here-b026ff?style=for-the-badge&logo=markdown&logoColor=white)](TECHNICAL_REPORT.md)
 
-<br><br>
-
-<!-- ASCII Art Header -->
-```
-██╗  ██╗██████╗  ██████╗ ███╗   ██╗███████╗ ██████╗████████╗ ██████╗ ██████╗ 
-██║ ██╔╝██╔══██╗██╔═══██╗████╗  ██║██╔════╝██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
-█████╔╝ ██████╔╝██║   ██║██╔██╗ ██║█████╗  ██║        ██║   ██║   ██║██████╔╝
-██╔═██╗ ██╔══██╗██║   ██║██║╚██╗██║██╔══╝  ██║        ██║   ██║   ██║██╔══██╗
-██║  ██╗██║  ██║╚██████╔╝██║ ╚████║███████╗╚██████╗   ██║   ╚██████╔╝██║  ██║
-╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═╝
-```
-
-<h3>🏎️ Formula 1 Race Outcome Prediction & MLOps Pipeline</h3>
-
-<p><i>An End-to-End Machine Learning System for F1 Race Intelligence.</i></p>
+<img src="assets/vercel_prediction.webp" alt="Kronector Dashboard UI" width="80%">
 
 </div>
 
 ---
 
-## 🏁 Overview
+## 🎯 Why This Project Exists
 
-**KRONECTOR** is an end-to-end Machine Learning operations (MLOps) pipeline that predicts Formula 1 race outcomes. It ingests 12 years of F1 telemetry data (2014-2026), trains a LightGBM classification model, and serves predictions via an asynchronous FastAPI backend wrapped in a multi-agent LLM architecture for natural language explainability.
+Predicting Formula 1 is notoriously difficult due to chaotic variance (weather, safety cars, mechanical failures). Most public projects use basic scikit-learn models on small, un-normalized datasets. 
 
-> 📄 **Technical Deep Dive:** Read the full mathematical and architectural breakdown in the [Technical Report](TECHNICAL_REPORT.md).
+**Kronector** was built to demonstrate how a **production-grade ML system** tackles this problem. It solves critical engineering challenges: preventing temporal data leakage, handling regulation-era normalization, and serving sub-second inference alongside SHAP-based mathematical explainability through a natural language interface.
 
 ---
 
-## 📊 Historical Results & Model Validation
+## ⚠️ Known Limitations
 
-The model is trained on **4,400+ historical race entries** (2014–2026) using `TimeSeriesSplit(n=5)` cross-validation to strictly prevent chronological data leakage.
+Having a rigorous model means being transparent about its blind spots. Currently, Kronector struggles with:
+1. **Safety Cars & Red Flags:** The model cannot dynamically predict sudden race neutralizations which reset field gaps.
+2. **Mechanical Failures (DNFs):** Engine failures and random reliability issues are treated as statistical noise.
+3. **Weather Chaos:** Sudden rain introduces extreme variance that tabular historical models struggle to adapt to dynamically.
+
+*Roadmap: Future iterations will ingest live radar weather data and historical Safety Car probability distributions per track.*
+
+---
+
+## 📊 Results & Performance
+
+The model is trained on **4,400+ driver-race instances** (covering all 20 cars across every race from 2014 to 2026).
+
+### Validation Methodology
+- **Leakage Prevention:** We strictly use `TimeSeriesSplit(n=5)`. A model is trained on years $T_0 \dots T_n$ and evaluated strictly on $T_{n+1}$.
+- **Accuracy Calculation:** "Winner Accuracy" is calculated as the **Top-1 Prediction** (does the driver with the highest predicted probability actually win the race?).
 
 ### Season-by-Season Out-of-Sample Performance
 | Season | Winner Accuracy | Podium Accuracy |
@@ -72,7 +57,8 @@ To prove the model captures complex non-linear relationships rather than just pr
 | Current WDC Leader Wins | ~51% |
 | Pole Position Wins | ~42% |
 
-### Feature Importance & ROC
+### Feature Importance & ROC Proofs
+*Mathematical proof that the model relies on logical racing factors.*
 <div align="center">
   <img src="frontend/public/metrics/feature_importance.svg" width="48%">
   <img src="frontend/public/metrics/roc_curve.svg" width="48%">
@@ -82,8 +68,9 @@ To prove the model captures complex non-linear relationships rather than just pr
 
 ## 🏗️ System Architecture
 
-The repository implements a complete lifecycle: data ingestion, feature engineering, model training, MLflow tracking, API serving, and Evidently AI drift monitoring.
+Kronector implements a complete MLOps lifecycle: data ingestion, feature engineering, model training, MLflow tracking, API serving, and Evidently AI drift monitoring.
 
+*(Note: A high-resolution PNG architecture diagram is coming soon.)*
 ```mermaid
 graph TD
     subgraph Data Layer
@@ -104,11 +91,15 @@ graph TD
     end
 ```
 
+### The 4-Agent LLM Architecture
+A raw probability output (e.g., "0.45") is not actionable for a strategist. We wrap the LightGBM inference engine in a 4-stage Agentic Pipeline to provide explainability:
+1. **🧠 DataAgent:** Parses natural language into a strict JSON intent (resolving "Monaco 23" to `season: 2023, round: 6`).
+2. **⚙️ PredictionAgent:** Executes the LightGBM model and extracts mathematical SHAP values.
+3. **🛡️ CritiqueAgent:** A pure-Python deterministic safeguard. It rejects predictions where confidence is below 20% (statistical noise in a 20-car field).
+4. **📻 SynthesisAgent:** Translates the math and SHAP values into a natural language response formatted as a radio message.
+
 ### Why LightGBM?
-We evaluated Neural Networks, XGBoost, and CatBoost. **LightGBM** was selected because:
-1. It natively handles categorical variables (e.g., driver and team IDs) natively without creating sparse one-hot encoded matrices.
-2. It trains significantly faster on tabular telemetry data compared to MLPs.
-3. It integrates seamlessly with `shap.TreeExplainer` for sub-millisecond feature importance extraction in production.
+We evaluated Neural Networks, XGBoost, and CatBoost. **LightGBM** was selected because it natively handles categorical variables (e.g., driver and team IDs) natively without creating sparse one-hot encoded matrices, and it integrates seamlessly with `shap.TreeExplainer` for sub-millisecond feature importance extraction in production.
 
 ---
 
@@ -153,13 +144,6 @@ npm run dev
 
 The FastAPI backend exposes endpoints for programmatic access. 
 
-### cURL Example
-```bash
-curl -X POST "http://localhost:8000/predict/f1" \
-     -H "Content-Type: application/json" \
-     -d '{"query": "Who will win the 2026 Canadian GP?"}'
-```
-
 ### Python Requests Example
 ```python
 import requests
@@ -176,35 +160,19 @@ print(f"SHAP Key Factors: {data['shap_values']}")
 
 ---
 
-## 📸 Dashboards & Demos
-
-### API Interaction
-<video src="https://github.com/prats010/kronector/raw/main/assets/swagger_ui.mp4" controls="controls" muted="muted" style="max-width: 100%;"></video>
-
-### User Interface
-![Vercel App Prediction](assets/vercel_prediction.webp)
-
----
-
-## ⚠️ Limitations & Roadmap
-
-While the model significantly outperforms simple baselines, it is inherently limited by the stochastic nature of motorsports. 
-
-**Current Limitations:**
-- **Safety Cars & Red Flags:** The model cannot currently predict sudden race neutralizations which reset field gaps.
-- **Mechanical Failures (DNFs):** Engine failures are treated as noise. 
-- **Weather Chaos:** Sudden rain introduces extreme variance that tabular historical models struggle to adapt to dynamically.
-
-**Project Roadmap:**
-- [ ] Integrate Live Weather Radar API.
-- [ ] Incorporate per-track historical Safety Car probability distributions.
-- [ ] Expand prediction granularity to Top 5 finishing orders (Ordinal Regression).
-
----
-
 ## 👨‍💻 About the Author
 
 **Prathamesh Anil Bhamare**  
-*MSc Computer Science Student*
+*MSc Computer Science Student | Machine Learning Engineer*
 
-[![GitHub](https://img.shields.io/badge/GitHub-prats010-181717?style=flat-square&logo=github)](https://github.com/prats010)
+I built Kronector combining a passion for Formula 1 strategy with rigorous Data Science and MLOps principles.
+
+- 💼 [LinkedIn](https://linkedin.com/in/prats010)
+- 🌐 [Portfolio](#)
+- 📄 [Read the Technical Report](TECHNICAL_REPORT.md)
+- 📧 [Contact Me](mailto:example@email.com)
+
+---
+<div align="center">
+<sub>Built for the passion of racing and the pursuit of perfect data.</sub>
+</div>
