@@ -1,306 +1,56 @@
-'use client';
+import Sidebar from "@/components/terminal/Sidebar";
+import RightSidebar from "@/components/terminal/RightSidebar";
+import SummaryMetrics from "@/components/terminal/SummaryMetrics";
+import NextRaceCard from "@/components/terminal/NextRaceCard";
+import HeadToHead from "@/components/terminal/HeadToHead";
+import TelemetryChart from "@/components/terminal/TelemetryChart";
+import ShapPanel from "@/components/terminal/ShapPanel";
+import AIStrategist from "@/components/terminal/AIStrategist";
 
-import { useState } from 'react';
-import styles from './page.module.css';
-import RuixenQueryBox from '@/components/ui/ruixen-query-box';
-
-export default function Home() {
-  const [mode, setMode] = useState('predict'); // 'predict' | 'compare' | 'metrics'
-  
-  // Single predict state
-  const [query, setQuery] = useState('');
-  
-  // Compare state
-  const [driver1, setDriver1] = useState('');
-  const [driver2, setDriver2] = useState('');
-  const [season, setSeason] = useState('');
-  const [round, setRound] = useState('');
-  
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-
-  const handleQuerySubmit = async (text) => {
-    setQuery(text);
-    if (!text.trim()) return;
-    await fetchResult('predict/f1', { query: text });
-  };
-
-  const handleSubmitCompare = async (e) => {
-    e.preventDefault();
-    if (!driver1.trim() || !driver2.trim()) return;
-    const body = { driver1, driver2 };
-    if (season) body.season = parseInt(season);
-    if (round) body.round = parseInt(round);
-    await fetchResult('predict/compare', body);
-  };
-
-  const fetchResult = async (endpoint, body) => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await fetch(`https://prats010-kronector.hf.space/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.detail || `API Error: ${res.status}`);
-      }
-      const data = await res.json();
-      setResult({ ...data, _type: endpoint });
-    } catch (err) {
-      setError(err.message || 'Failed to fetch prediction. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderShapBars = (shapValues, isCompare = false) => {
-    if (!shapValues) return null;
-    return Object.entries(shapValues)
-      .sort(([,a], [,b]) => Math.abs(b) - Math.abs(a))
-      .slice(0, 6)
-      .map(([key, value]) => {
-        const absVal = Math.abs(value);
-        const isPositive = value > 0;
-        
-        let width = Math.min((absVal / 2) * 100, 50);
-        if (isCompare) {
-            // For delta: positive = driver 1 (green, left side), negative = driver 2 (red, right side)
-            // Wait, standard UI: positive is driver 1.
-            width = Math.min((absVal / 5) * 100, 50); // Scale down slightly for deltas since they can be larger
-        }
-
-        return (
-          <div key={key} className={styles.shapRow}>
-            <div className={styles.shapLabel} title={key}>
-              {key.replace(/_/g, ' ')}
-            </div>
-            <div className={styles.barTrack}>
-              <div 
-                className={`${styles.barFill} ${isPositive ? styles.barPositive : styles.barNegative}`}
-                style={{ width: `${width}%` }}
-              />
-            </div>
-            <div className={`${styles.shapValue} ${isPositive ? 'text-gradient' : ''}`} style={!isPositive ? {color: 'var(--neon-red)'} : {}}>
-              {value > 0 ? '+' : ''}{value.toFixed(3)}
-            </div>
-          </div>
-        );
-      });
-  };
-
+export default function TerminalDashboard() {
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <h1 className={`${styles.title} text-gradient`}>KRONECTOR</h1>
-        <p className={styles.subtitle}>F1 Intelligence Terminal. Powered by LLMs and LightGBM.</p>
-      </div>
-
-      <div className={styles.tabsContainer}>
-        <button 
-          className={`${styles.tabBtn} ${mode === 'predict' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('predict'); setResult(null); setError(null); }}
-        >
-          Single Prediction
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${mode === 'compare' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('compare'); setResult(null); setError(null); }}
-        >
-          Head-to-Head Compare
-        </button>
-        <button 
-          className={`${styles.tabBtn} ${mode === 'metrics' ? styles.tabActive : ''}`}
-          onClick={() => { setMode('metrics'); setResult(null); setError(null); }}
-        >
-          Model Metrics
-        </button>
-      </div>
-
-      <div className={styles.queryContainer}>
-        {mode === 'predict' && (
-          <div className={styles.inputWrapper} style={{ background: 'transparent', border: 'none', boxShadow: 'none', padding: 0 }}>
-            <RuixenQueryBox onSubmit={handleQuerySubmit} />
-            {loading && <div className={styles.loader} style={{ position: 'absolute', top: '-20px', right: '50%' }} />}
+    <div className="flex bg-[#050816] min-h-screen text-white font-sans selection:bg-[#00E5FF]/30">
+      <Sidebar />
+      
+      {/* Main Content Area: Offset by left sidebar (64 = 16rem = 256px) and right sidebar (72 = 18rem = 288px) */}
+      <main className="flex-1 ml-64 mr-72 h-screen overflow-y-auto">
+        {/* Sticky Header inside main area */}
+        <header className="sticky top-0 z-10 bg-[#050816]/90 backdrop-blur-md border-b border-[#1a1f35] p-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-white">RACE INTELLIGENCE</h1>
+            <p className="text-xs font-mono text-[#A0A0A0] mt-1">SEASON 2026 // LIVE TELEMETRY ACQUISITION</p>
           </div>
-        )}
-        {mode === 'compare' && (
-          <form onSubmit={handleSubmitCompare} className={styles.compareForm}>
-            <div className={styles.compareInputsRow}>
-              <div className={styles.inputWrapper}>
-                  <input type="text" className={styles.input} placeholder="Driver 1 (e.g., Max Verstappen)" value={driver1} onChange={e=>setDriver1(e.target.value)} required disabled={loading} />
-              </div>
-              <span className={styles.vsText}>VS</span>
-              <div className={styles.inputWrapper}>
-                  <input type="text" className={styles.input} placeholder="Driver 2 (e.g., Kimi Antonelli)" value={driver2} onChange={e=>setDriver2(e.target.value)} required disabled={loading} />
-              </div>
-            </div>
-            <div className={styles.compareInputsRowSmall}>
-              <div className={styles.inputWrapper} style={{maxWidth: '200px'}}>
-                  <input type="number" className={styles.input} style={{padding: '1rem'}} placeholder="Season (Optional)" value={season} onChange={e=>setSeason(e.target.value)} disabled={loading} />
-              </div>
-              <div className={styles.inputWrapper} style={{maxWidth: '200px'}}>
-                  <input type="number" className={styles.input} style={{padding: '1rem'}} placeholder="Round (Optional)" value={round} onChange={e=>setRound(e.target.value)} disabled={loading} />
-              </div>
-            </div>
-            <button type="submit" className={styles.compareSubmitBtn} disabled={loading || !driver1.trim() || !driver2.trim()}>
-              {loading ? 'Analyzing...' : 'Run Head-to-Head Comparison'}
+          <div className="flex gap-4">
+            <button className="bg-[#1a1f35] hover:bg-[#1a1f35]/80 text-[#00E5FF] px-4 py-2 rounded text-xs font-mono transition-colors border border-[#00E5FF]/20">
+              [ RUN PREDICTION ]
             </button>
-          </form>
-        )}
-        {mode === 'metrics' && (
-          <div className={`${styles.dashboardGrid} animate-fade-in-up`} style={{gridTemplateColumns: '1fr', gap: '2rem', maxWidth: '1000px', margin: '0 auto'}}>
-            <div className={`${styles.panel} glass-panel`}>
-              <h2 className={styles.panelTitle} style={{justifyContent: 'center', fontSize: '1.5rem'}}>KRONECTOR Core Model Metrics</h2>
-              <p className={styles.insightText} style={{textAlign: 'center', marginBottom: '2rem'}}>
-                LightGBM Binary Classifier evaluated on 2023-2024 F1 Race Data.
-              </p>
-              
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem'}}>
-                <div>
-                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>ROC AUC Curve</h3>
-                  <img src="/metrics/roc_curve.svg" alt="ROC Curve" style={{width: '100%', borderRadius: '10px'}} />
-                </div>
-                <div>
-                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Precision-Recall Curve</h3>
-                  <img src="/metrics/pr_curve.svg" alt="PR Curve" style={{width: '100%', borderRadius: '10px'}} />
-                </div>
-                <div>
-                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Confusion Matrix</h3>
-                  <img src="/metrics/confusion_matrix.svg" alt="Confusion Matrix" style={{width: '100%', borderRadius: '10px'}} />
-                </div>
-                <div>
-                  <h3 style={{color: 'var(--neon-cyan)', marginBottom: '1rem', textAlign: 'center'}}>Global Feature Importance</h3>
-                  <img src="/metrics/feature_importance.svg" alt="Feature Importance" style={{width: '100%', borderRadius: '10px'}} />
-                </div>
-              </div>
-            </div>
+            <button className="bg-[#E10600]/10 hover:bg-[#E10600]/20 text-[#E10600] px-4 py-2 rounded text-xs font-mono transition-colors border border-[#E10600]/20">
+              [ FORCE RETRAIN ]
+            </button>
           </div>
-        )}
-        {error && <div style={{ color: 'var(--neon-red)', marginTop: '1rem', textAlign: 'center' }}>{error}</div>}
-      </div>
+        </header>
 
-      {result && result._type === 'predict/f1' && (
-        <div className={`${styles.dashboardGrid} animate-fade-in-up`}>
-          {/* Left Column: Gauge */}
-          <div className={`${styles.panel} glass-panel`}>
-            <h2 className={styles.panelTitle}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Win Probability
-            </h2>
-            <div className={styles.gaugeContainer}>
-              <div 
-                className={styles.gaugeCircle} 
-                style={{ '--prob': `${result.win_probability.toFixed(1)}%` }}
-              >
-                <span className={styles.gaugeText}>
-                  {result.win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
-                </span>
-              </div>
-              <div className={styles.gaugeLabel}>
-                {result.metadata?.driver_name || 'Driver'} @ {result.metadata?.season} Round {result.metadata?.round}
-              </div>
-              {result.confidence_rating && (
-                <div className={`${styles.rating} ${result.confidence_rating.includes('Good') ? styles.ratingGood : styles.ratingBad}`}>
-                  Data Confidence: {result.confidence_rating}
-                </div>
-              )}
-            </div>
+        {/* Dense Dashboard Grid */}
+        <div className="p-6">
+          <SummaryMetrics />
+          
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+            <NextRaceCard />
+            <HeadToHead />
           </div>
 
-          {/* Right Column: Insight & SHAP */}
-          <div className={`${styles.panel} glass-panel delay-100`} style={{ gap: '2rem' }}>
-            <div>
-              <h2 className={styles.panelTitle}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                AI Insight
-              </h2>
-              <p className={styles.insightText}>
-                {result.llm_explanation}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 gap-6 mb-6">
+            <TelemetryChart />
+          </div>
 
-            <div>
-              <h2 className={styles.panelTitle}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                Key Factors (SHAP)
-              </h2>
-              <div className={styles.shapContainer}>
-                {renderShapBars(result.shap_values)}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-12">
+            <ShapPanel />
+            <AIStrategist />
           </div>
         </div>
-      )}
+      </main>
 
-      {result && result._type === 'predict/compare' && (
-        <div className={`${styles.dashboardGrid} animate-fade-in-up`} style={{gridTemplateColumns: '1fr'}}>
-          
-          <div className={`${styles.panel} glass-panel`} style={{marginBottom: '2rem'}}>
-            <h2 className={styles.panelTitle} style={{justifyContent: 'center', fontSize: '1.5rem'}}>
-              {result.driver1.driver_name} vs {result.driver2.driver_name}
-            </h2>
-            <div className={styles.gaugeContainer} style={{flexDirection: 'row', gap: '4rem'}}>
-              {/* Driver 1 */}
-              <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <div className={styles.gaugeCircle} style={{ '--prob': `${result.driver1_win_probability.toFixed(1)}%` }}>
-                  <span className={styles.gaugeText}>
-                    {result.driver1_win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
-                  </span>
-                </div>
-                <div className={styles.gaugeLabel}>{result.driver1.driver_name}</div>
-              </div>
-              
-              {/* VS */}
-              <div className={styles.vsText} style={{fontSize: '2rem'}}>VS</div>
-
-              {/* Driver 2 */}
-              <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-                <div className={styles.gaugeCircle} style={{ '--prob': `${result.driver2_win_probability.toFixed(1)}%`, '--neon-cyan': 'var(--neon-red)' }}>
-                  <span className={styles.gaugeText}>
-                    {result.driver2_win_probability.toFixed(1)}<span style={{fontSize: '1.5rem', color: 'var(--text-secondary)'}}>%</span>
-                  </span>
-                </div>
-                <div className={styles.gaugeLabel}>{result.driver2.driver_name}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className={`${styles.dashboardGrid}`} style={{gap: '2rem'}}>
-            {/* LLM Insight */}
-            <div className={`${styles.panel} glass-panel delay-100`}>
-              <h2 className={styles.panelTitle}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Tale of the Tape
-              </h2>
-              <div className={styles.insightText} style={{whiteSpace: 'pre-wrap'}}>
-                {result.llm_analysis}
-              </div>
-            </div>
-
-            {/* SHAP Deltas */}
-            <div className={`${styles.panel} glass-panel delay-200`}>
-              <h2 className={styles.panelTitle}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                Mathematical Edges (Tug of War)
-              </h2>
-              <div className={styles.shapContainer}>
-                {renderShapBars(result.shap_deltas, true)}
-                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '1rem', color: 'var(--text-secondary)', fontSize: '0.8rem'}}>
-                    <span>← Advantage {result.driver2.driver_name}</span>
-                    <span>Advantage {result.driver1.driver_name} →</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-      )}
-    </main>
+      <RightSidebar />
+    </div>
   );
 }
