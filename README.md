@@ -1,3 +1,13 @@
+---
+title: Kronector
+emoji: 🏎️
+colorFrom: red
+colorTo: gray
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 <div align="center">
 
 # Kronector: F1 Race Outcome Prediction & MLOps System
@@ -58,11 +68,7 @@ To prove the model captures complex non-linear relationships rather than just pr
 | Pole Position Wins | ~42% |
 
 ### Feature Importance & ROC Proofs
-*Mathematical proof that the model relies on logical racing factors.*
-<div align="center">
-  <img src="frontend/public/metrics/feature_importance.svg" width="48%">
-  <img src="frontend/public/metrics/roc_curve.svg" width="48%">
-</div>
+*Mathematical proof that the model relies on logical racing factors can be regenerated with `python -m scripts.generate_model_proofs`.*
 
 ---
 
@@ -87,7 +93,6 @@ graph TD
     subgraph Serving
         E --> G[FastAPI Backend]
         G --> H[Multi-Agent LLM]
-        H --> I[React Frontend]
     end
 ```
 
@@ -125,17 +130,12 @@ python -m data.build_driver_map
 python -m scripts.auto_retrain_pipeline
 ```
 
-### 3. Run the API & Frontend
+### 3. Run the API
 Create a `.env` file with `GROQ_API_KEY=your_key` and the `KRONECTOR_MODEL_RUN_ID` outputted by the training script.
 
 ```bash
 # Start backend
 python -m uvicorn api.main:app --reload
-
-# Start frontend (in a new terminal)
-cd frontend
-npm install
-npm run dev
 ```
 
 ---

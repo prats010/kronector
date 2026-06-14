@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kronector | F1 Intelligence</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0a0a0a;
+        color: #f4f4f4;
+        font-family: 'Inter', Arial, sans-serif;
+      }
+      a { color: #00f2ff; }
+    </style>
+    <script>
+      // Auto-redirect based on viewport width
+      (function() {
+        var target = window.innerWidth <= 768 ? 'mobile.html' : 'desktop.html';
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <main>
+      <p>Opening Kronector...</p>
+      <p><a href="desktop.html">Desktop</a> · <a href="mobile.html">Mobile</a></p>
+    </main>
+  </body>
+</html>

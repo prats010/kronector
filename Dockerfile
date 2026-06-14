@@ -29,7 +29,6 @@ COPY --chown=1000:1000 api/ ./api/
 COPY --chown=1000:1000 ml/ ./ml/
 COPY --chown=1000:1000 data/ ./data/
 COPY --chown=1000:1000 scripts/ ./scripts/
-COPY --chown=1000:1000 ui/ ./ui/
 COPY --chown=1000:1000 run_api.py run_all.py ./
 
 # Copy pre-trained model artifacts and data

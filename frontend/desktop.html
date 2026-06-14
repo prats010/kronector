@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kronector | Formula 1 Intelligence</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Config -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#131313",
+                        "on-primary-fixed": "#400200",
+                        "secondary": "#ddfcff",
+                        "primary": "#ffb4a7",
+                        "on-error-container": "#ffdad6",
+                        "surface-container": "#201f1f",
+                        "on-secondary-fixed": "#002022",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-container": "#909191",
+                        "inverse-on-surface": "#313030",
+                        "primary-fixed-dim": "#ffb4a7",
+                        "inverse-primary": "#be0e00",
+                        "on-tertiary-container": "#282a2a",
+                        "on-secondary-container": "#006a70",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "outline": "#b08780",
+                        "outline-variant": "#5f3e39",
+                        "primary-container": "#ff553d",
+                        "on-primary-fixed-variant": "#910900",
+                        "secondary-fixed": "#74f5ff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-surface-variant": "#eabcb4",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-tertiary": "#2f3131",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "background": "#131313",
+                        "on-error": "#690005",
+                        "surface-variant": "#353534",
+                        "surface-bright": "#3a3939",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-low": "#1c1b1b",
+                        "on-secondary": "#00363a",
+                        "primary-fixed": "#ffdad4",
+                        "on-primary-container": "#5b0300",
+                        "on-primary": "#670400",
+                        "surface": "#131313",
+                        "secondary-container": "#00f1fe",
+                        "on-background": "#e5e2e1",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffb4a7",
+                        "tertiary": "#c6c6c7",
+                        "surface-container-highest": "#353534",
+                        "error": "#ffb4ab"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-main": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-fixed": ["JetBrains Mono"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-main": ["16px", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "body-fixed": ["14px", { "lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom Carbon UI Grid Pattern */
+        .bg-grid-pattern {
+            background-image: 
+                linear-gradient(to right, rgba(95, 62, 57, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(95, 62, 57, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        
+        /* Terminal Glow Effects */
+        .terminal-glow {
+            box-shadow: 0 0 15px rgba(0, 241, 254, 0.1);
+        }
+        
+        /* SHAP Bar Animation (Simulated) */
+        @keyframes shapExpand {
+            from { width: 0; }
+            to { width: var(--target-width); }
+        }
+        .shap-bar {
+            animation: shapExpand 1.5s ease-out forwards;
+        }
+        
+        /* Flow Diagram Pulse */
+        @keyframes linePulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+        .flow-line {
+            animation: linePulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body-main antialiased min-h-screen flex flex-col selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- 1. TopNavBar -->
+<header class="bg-surface-dim/80 backdrop-blur-xl w-full flex justify-between items-center px-margin-desktop h-16 z-50 border-b border-outline-variant/30 sticky top-0">
+<div class="flex items-center gap-gutter">
+<span class="font-display-lg text-display-lg-mobile md:text-[24px] font-extrabold uppercase tracking-tighter text-on-surface">KRONECTOR</span>
+<div id="health-indicator" class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-surface-variant cursor-pointer" title="Click to check API health">
+<span id="health-dot" class="w-2 h-2 rounded-full bg-secondary-fixed-dim animate-pulse"></span>
+<span id="health-label" class="font-label-caps text-label-caps text-secondary-fixed-dim uppercase">Checking...</span>
+</div>
+</div>
+<nav class="hidden md:flex gap-8">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps hover:text-secondary-fixed transition-colors duration-200" href="#section-predictions">Predictions</a>
+<a class="text-on-surface-variant font-medium font-label-caps text-label-caps hover:text-secondary-fixed transition-colors duration-200" href="#section-features">Model Proof</a>
+<a class="text-on-surface-variant font-medium font-label-caps text-label-caps hover:text-secondary-fixed transition-colors duration-200" href="#section-architecture">Architecture</a>
+<a class="text-on-surface-variant font-medium font-label-caps text-label-caps hover:text-secondary-fixed transition-colors duration-200" href="#section-cta">API</a>
+</nav>
+<button id="nav-run-btn" class="bg-primary-container text-on-primary-container hover:bg-primary-container/80 transition-colors px-4 py-2 rounded font-label-caps text-label-caps hidden md:block active:scale-95">Run Prediction</button>
+<!-- Mobile Menu Icon (Placeholder) -->
+<button class="md:hidden text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</header>
+<main class="flex-grow">
+<!-- 2. Hero Section -->
+<section id="section-predictions" class="relative pt-20 pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto overflow-hidden scroll-mt-20">
+<div class="absolute inset-0 bg-grid-pattern pointer-events-none"></div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+<!-- Text Content -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container border border-surface-variant rounded-full w-max">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm" style="font-variation-settings: 'FILL' 1;">speed</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Telemetry Ingestion Active</span>
+</div>
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface leading-tight">Predict the race before lights out</h1>
+<p class="font-body-main text-body-main text-on-surface-variant">Kronector turns Formula 1 telemetry, qualifying pace, driver form, and model explainability into race-winning predictions before the grid forms.</p>
+<div class="flex flex-wrap gap-4 pt-4">
+<button id="hero-run-btn" class="bg-primary-container text-on-primary-container px-6 py-3 rounded hover:bg-primary/90 transition-colors font-headline-md text-[16px]">Run prediction</button>
+<button id="hero-proof-btn" class="border border-secondary-container text-secondary-fixed-dim px-6 py-3 rounded hover:bg-secondary-container/10 transition-colors font-body-fixed text-body-fixed flex items-center gap-2">
+                            View model proof
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Product Mock (Terminal) -->
+<div id="terminal" class="lg:col-span-7 bg-[#000000] border border-secondary-container rounded-lg terminal-glow flex flex-col overflow-hidden shadow-2xl">
+<!-- Terminal Header -->
+<div class="h-8 bg-surface-container flex items-center px-4 border-b border-surface-variant gap-2">
+<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+<div class="w-3 h-3 rounded-full bg-surface-variant"></div>
+<span class="ml-4 font-body-fixed text-[10px] text-on-surface-variant">kronector-inference-node-01 — zsh</span>
+<span id="terminal-confidence" class="mr-4 font-label-caps text-[10px] text-secondary-fixed-dim">Confidence Interval: —</span><span id="terminal-gp-label" class="ml-auto font-label-caps text-[10px] text-primary-container">Ready for Query</span>
+</div>
+<div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-px bg-surface-variant">
+<!-- Win Probability Pane -->
+<div id="pane-prediction" class="bg-[#000000] p-4 col-span-1 md:col-span-2 flex flex-col gap-2 overflow-x-auto custom-scrollbar">
+<h3 class="font-label-caps text-label-caps text-secondary-fixed-dim mb-2 uppercase border-b border-surface-variant pb-1">Win Probability Model</h3>
+<div id="prediction-content">
+<p class="font-body-fixed text-[12px] text-on-surface-variant/60 italic">Enter a query below to get a live prediction...</p>
+</div>
+</div>
+<!-- SHAP Pane -->
+<div id="pane-shap" class="bg-[#000000] p-4 flex flex-col gap-2 border-t border-surface-variant md:border-t-0 md:border-l">
+<h3 class="font-label-caps text-label-caps text-secondary-fixed-dim mb-2 uppercase border-b border-surface-variant pb-1">SHAP Features</h3>
+<div id="shap-content" class="flex flex-col gap-2 font-body-fixed text-[11px]">
+<p class="text-on-surface-variant/60 italic text-[11px]">Awaiting prediction...</p>
+</div>
+</div>
+<!-- Race Radio Pane -->
+<div id="pane-radio" class="bg-[#000000] p-4 col-span-1 md:col-span-2 border-t border-surface-variant">
+<h3 class="font-label-caps text-label-caps text-secondary-fixed-dim mb-2 uppercase">Agentic Race-Radio</h3>
+<div id="radio-content" class="font-body-fixed text-[12px] text-tertiary-fixed-dim flex flex-col gap-1 opacity-80">
+<div><span class="text-on-surface-variant/50">—</span> Waiting for agentic synthesis...</div>
+</div>
+</div>
+</div>
+<!-- Prompt Input -->
+<div class="bg-surface-container border-t border-surface-variant p-3 flex items-center gap-3">
+<span class="font-body-fixed text-secondary-fixed-dim">❯</span>
+<input id="terminal-input" class="bg-transparent border-none text-on-surface font-body-fixed text-[13px] flex-grow focus:ring-0 p-0" type="text" placeholder="Who wins the 2026 Canadian GP?" autocomplete="off"/>
+<button id="terminal-send" class="text-on-surface-variant hover:text-secondary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Metrics Strip -->
+<section id="section-metrics" class="border-y border-outline-variant/30 bg-surface-dim/50 py-8 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-container-max mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-outline-variant/30">
+<div class="pl-4 border-l-2 border-secondary-fixed-dim flex flex-col gap-1">
+<span class="font-headline-md text-headline-md text-on-surface">71%</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Winner Accuracy</span>
+</div>
+<div class="pl-4 md:pl-8 border-l-2 border-primary-container flex flex-col gap-1">
+<span class="font-headline-md text-headline-md text-on-surface">0.94</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">ROC AUC</span>
+</div>
+<div class="pl-4 md:pl-8 border-l-2 border-secondary-fixed-dim flex flex-col gap-1">
+<span class="font-headline-md text-headline-md text-on-surface">4-Agent</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Pipeline</span>
+</div>
+<div class="pl-4 md:pl-8 border-l-2 border-primary-container flex flex-col gap-1">
+<span class="font-headline-md text-headline-md text-on-surface">&lt; 1s</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Inference</span>
+</div>
+</div>
+</section>
+<!-- 4. Features Bento Grid -->
+<section id="section-features" class="py-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto scroll-mt-20">
+<div class="mb-12">
+<h2 class="font-headline-md text-[28px] text-on-surface mb-2">Technical Capabilities</h2>
+<p class="font-body-main text-on-surface-variant">Built for precision telemetry analysis and race strategy formulation.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 hover:border-secondary-container transition-colors group">
+<span class="material-symbols-outlined text-secondary-fixed-dim mb-4 text-[32px] group-hover:scale-110 transition-transform">monitoring</span>
+<h3 class="font-body-fixed text-[16px] text-on-surface mb-2 font-bold">Race Prediction</h3>
+<p class="font-body-main text-[14px] text-on-surface-variant leading-relaxed">Real-time probability updates as track conditions shift.</p>
+</div>
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 hover:border-primary-container transition-colors group">
+<span class="material-symbols-outlined text-primary-container mb-4 text-[32px] group-hover:scale-110 transition-transform">insights</span>
+<h3 class="font-body-fixed text-[16px] text-on-surface mb-2 font-bold">SHAP Explainability</h3>
+<p class="font-body-main text-[14px] text-on-surface-variant leading-relaxed">Understand the 'why' behind every model output.</p>
+</div>
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 hover:border-secondary-container transition-colors group">
+<span class="material-symbols-outlined text-secondary-fixed-dim mb-4 text-[32px] group-hover:scale-110 transition-transform">track_changes</span>
+<h3 class="font-body-fixed text-[16px] text-on-surface mb-2 font-bold">Drift Monitoring</h3>
+<p class="font-body-main text-[14px] text-on-surface-variant leading-relaxed">Live validation of model performance against track telemetry.</p>
+</div>
+<div class="bg-surface-container border border-surface-variant rounded-lg p-6 hover:border-primary-container transition-colors group">
+<span class="material-symbols-outlined text-primary-container mb-4 text-[32px] group-hover:scale-110 transition-transform">record_voice_over</span>
+<h3 class="font-body-fixed text-[16px] text-on-surface mb-2 font-bold">Agentic Race Radio</h3>
+<p class="font-body-main text-[14px] text-on-surface-variant leading-relaxed">LLM-synthesized strategic insights from multi-agent consensus.</p>
+</div>
+</div>
+</section>
+<!-- 5. Architecture Band -->
+<section id="section-architecture" class="py-16 bg-surface-container-lowest border-y border-outline-variant/20 overflow-x-auto custom-scrollbar scroll-mt-20">
+<div class="px-margin-mobile md:px-margin-desktop min-w-[800px] max-w-container-max mx-auto flex flex-col items-center">
+<h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-12 tracking-[0.2em]">Inference Architecture</h2>
+<div class="flex items-center gap-2"><div class="group flex flex-col items-center gap-2"><div class="px-4 py-3 bg-surface-container-high border border-outline-variant rounded-lg flex flex-col items-center justify-center min-w-[160px] hover:border-secondary-fixed-dim transition-colors cursor-default"><span class="text-[9px] font-label-caps text-secondary-fixed-dim mb-1 uppercase tracking-widest">Ingesting</span><span class="font-body-fixed text-[12px] text-on-surface text-center">FastF1 + Jolpica</span></div></div><div class="flex items-center"><div class="h-px w-4 bg-secondary-fixed-dim/30"></div><div class="h-px w-8 bg-secondary-fixed-dim flow-line"></div><span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]">chevron_right</span></div><div class="group flex flex-col items-center gap-2"><div class="px-4 py-3 bg-surface-container-high border border-outline-variant rounded-lg flex flex-col items-center justify-center min-w-[160px] hover:border-secondary-fixed-dim transition-colors cursor-default"><span class="text-[9px] font-label-caps text-secondary-fixed-dim mb-1 uppercase tracking-widest">Normalized</span><span class="font-body-fixed text-[12px] text-on-surface text-center">25+ features</span></div></div><div class="flex items-center"><div class="h-px w-4 bg-secondary-fixed-dim/30"></div><div class="h-px w-8 bg-secondary-fixed-dim flow-line" style="animation-delay: 0.5s"></div><span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]">chevron_right</span></div><div class="group flex flex-col items-center gap-2"><div class="px-4 py-3 bg-surface-container-high border border-primary-container rounded-lg flex flex-col items-center justify-center min-w-[160px] shadow-[0_0_10px_rgba(255,85,61,0.2)] hover:border-primary transition-colors cursor-default"><span class="text-[9px] font-label-caps text-primary-container mb-1 uppercase tracking-widest">Trained</span><span class="font-body-fixed text-[12px] text-primary-container font-bold text-center">LightGBM + SHAP</span></div></div><div class="flex items-center"><div class="h-px w-4 bg-secondary-fixed-dim/30"></div><div class="h-px w-8 bg-secondary-fixed-dim flow-line" style="animation-delay: 1s"></div><span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]">chevron_right</span></div><div class="group flex flex-col items-center gap-2"><div class="px-4 py-3 bg-surface-container-high border border-outline-variant rounded-lg flex flex-col items-center justify-center min-w-[160px] hover:border-secondary-fixed-dim transition-colors cursor-default"><span class="text-[9px] font-label-caps text-secondary-fixed-dim mb-1 uppercase tracking-widest">Serving</span><span class="font-body-fixed text-[12px] text-on-surface text-center">FastAPI p95 &lt; 1s</span></div></div><div class="flex items-center"><div class="h-px w-4 bg-secondary-fixed-dim/30"></div><div class="h-px w-8 bg-secondary-fixed-dim flow-line" style="animation-delay: 1.5s"></div><span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]">chevron_right</span></div><div class="group flex flex-col items-center gap-2"><div class="px-4 py-3 bg-surface-container-high border border-outline-variant rounded-lg flex flex-col items-center justify-center min-w-[160px] hover:border-secondary-fixed-dim transition-colors cursor-default"><span class="text-[9px] font-label-caps text-secondary-fixed-dim mb-1 uppercase tracking-widest">Synthesized</span><span class="font-body-fixed text-[12px] text-on-surface text-center">4-agent chain</span></div></div></div>
+</div>
+</section>
+<!-- 6. Final CTA -->
+<section id="section-cta" class="py-24 px-margin-mobile md:px-margin-desktop text-center relative scroll-mt-20">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-container-high/30 via-surface-dim to-surface-dim pointer-events-none"></div>
+<div class="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[48px] mb-6">flag</span>
+<h2 class="font-display-lg text-display-lg-mobile md:text-[40px] text-on-surface mb-8">Ask the pit wall before race day</h2>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button id="cta-launch-btn" class="bg-primary-container text-on-primary-container px-8 py-3 rounded hover:bg-primary/90 transition-colors font-headline-md text-[16px]">Launch predictor</button>
+<button id="cta-docs-btn" class="border border-outline-variant text-on-surface px-8 py-3 rounded hover:bg-surface-container transition-colors font-body-fixed text-[14px]">Read API docs</button>
+</div>
+</div>
+</section>
+</main>
+<!-- 7. Footer -->
+<footer class="bg-surface-container-lowest full-width py-12 px-margin-desktop border-t border-outline-variant/20 flex flex-col md:flex-row justify-between items-start gap-gutter mt-auto">
+<div class="flex flex-col gap-2">
+<span class="font-display-lg text-display-lg-mobile uppercase text-on-surface-variant opacity-50 md:text-[24px]">KRONECTOR</span>
+<p class="font-label-caps text-label-caps text-secondary-fixed-dim">KRONECTOR INTELLIGENCE. ALL SYSTEMS OPERATIONAL. © 2024</p>
+</div>
+<nav class="flex flex-wrap gap-6 mt-6 md:mt-0">
+<a id="footer-api-ref" class="font-body-fixed text-body-fixed text-on-surface-variant hover:text-primary transition-opacity cursor-pointer">API Reference</a>
+<a id="footer-docs" class="font-body-fixed text-body-fixed text-on-surface-variant hover:text-primary transition-opacity cursor-pointer">Documentation</a>
+<a id="footer-status" class="font-body-fixed text-body-fixed text-on-surface-variant hover:text-primary transition-opacity cursor-pointer">Status</a>
+<a class="font-body-fixed text-body-fixed text-on-surface-variant hover:text-primary transition-opacity" href="#">Terms</a>
+</nav>
+</footer>
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-lg font-body-fixed text-[13px] shadow-2xl border transition-all duration-300 opacity-0 translate-y-4 pointer-events-none" style="background:#201f1f;border-color:#5f3e39;color:#e5e2e1;"></div>
+
+<script>
+// ============================================================================
+// KRONECTOR Frontend — API Integration
+// ============================================================================
+
+const API_BASE = 'http://localhost:8000';
+
+// --- Utility ---
+function $(id) { return document.getElementById(id); }
+
+function showToast(msg, type = 'info') {
+    const t = $('toast');
+    t.textContent = msg;
+    t.style.borderColor = type === 'error' ? '#93000a' : type === 'success' ? '#00dbe7' : '#5f3e39';
+    t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+    t.classList.add('opacity-100', 'translate-y-0');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => {
+        t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        t.classList.remove('opacity-100', 'translate-y-0');
+    }, 4000);
+}
+
+function scrollToInput() {
+    const input = $('terminal-input');
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => input.focus(), 400);
+}
+
+// --- Smooth Scroll for nav links ---
+document.querySelectorAll('a[href^="#section-"]').forEach(a => {
+    a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+// --- Health Check ---
+async function checkHealth() {
+    const dot = $('health-dot');
+    const label = $('health-label');
+    try {
+        const res = await fetch(`${API_BASE}/health`);
+        const data = await res.json();
+        if (data.status === 'healthy') {
+            dot.className = 'w-2 h-2 rounded-full bg-secondary-fixed-dim animate-pulse';
+            label.textContent = 'Live';
+            label.className = 'font-label-caps text-label-caps text-secondary-fixed-dim uppercase';
+        } else {
+            dot.className = 'w-2 h-2 rounded-full bg-primary-container animate-pulse';
+            label.textContent = 'Degraded';
+            label.className = 'font-label-caps text-label-caps text-primary-container uppercase';
+        }
+    } catch {
+        dot.className = 'w-2 h-2 rounded-full bg-error';
+        dot.classList.remove('animate-pulse');
+        label.textContent = 'Offline';
+        label.className = 'font-label-caps text-label-caps text-error uppercase';
+    }
+}
+
+// --- Prediction API ---
+let _isLoading = false;
+
+async function runPrediction(query) {
+    if (_isLoading) return;
+    if (!query || query.trim().length < 3) {
+        showToast('Query too short. Try something like: "Who wins the 2024 Monaco GP?"', 'error');
+        return;
+    }
+    _isLoading = true;
+    const sendBtn = $('terminal-send');
+    sendBtn.disabled = true;
+
+    // Show loading state in terminal
+    $('terminal-gp-label').textContent = 'Processing...';
+    $('terminal-confidence').textContent = 'Inference Running';
+    $('prediction-content').innerHTML = '<p class="font-body-fixed text-[12px] text-secondary-fixed-dim animate-pulse">⏳ Querying model pipeline...</p>';
+    $('shap-content').innerHTML = '<p class="text-on-surface-variant/60 italic text-[11px] animate-pulse">Computing SHAP values...</p>';
+    $('radio-content').innerHTML = '<div class="animate-pulse"><span class="text-secondary-container">[STRAT_AGENT]</span> Synthesizing response...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/predict/f1`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query.trim() })
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `API Error ${res.status}`);
+        }
+
+        const data = await res.json();
+        renderPrediction(data);
+        showToast('Prediction complete ✓', 'success');
+    } catch (err) {
+        $('prediction-content').innerHTML = `<p class="font-body-fixed text-[12px] text-error">❌ ${err.message}</p>`;
+        $('shap-content').innerHTML = '<p class="text-error text-[11px]">Error</p>';
+        $('radio-content').innerHTML = `<div><span class="text-error">[ERROR]</span> ${err.message}</div>`;
+        $('terminal-gp-label').textContent = 'Error';
+        $('terminal-confidence').textContent = '';
+        showToast(err.message, 'error');
+    } finally {
+        _isLoading = false;
+        sendBtn.disabled = false;
+    }
+}
+
+function renderPrediction(data) {
+    const m = data.metadata;
+
+    // Terminal header
+    $('terminal-confidence').textContent = data.confidence_rating
+        ? `Confidence: ${data.confidence_rating}`
+        : `Win: ${data.win_probability}%`;
+    $('terminal-gp-label').textContent = `${m.season} Round ${m.round} — ${m.driver_name}`;
+
+    // Prediction pane — single driver result card
+    const probColor = data.win_probability > 50 ? 'text-primary-container' : data.win_probability > 20 ? 'text-secondary-fixed-dim' : 'text-on-surface-variant';
+    $('prediction-content').innerHTML = `
+        <table class="w-full text-left font-body-fixed text-[11px] border-separate border-spacing-y-1">
+            <thead class="text-on-surface-variant uppercase text-[9px] tracking-wider">
+                <tr>
+                    <th class="px-2 py-1">Driver</th>
+                    <th class="px-2 py-1">Team</th>
+                    <th class="px-2 py-1">Grid</th>
+                    <th class="px-2 py-1">Season</th>
+                    <th class="px-2 py-1">Round</th>
+                    <th class="px-2 py-1 text-right">Win %</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bg-surface-container-low rounded">
+                    <td class="px-2 py-1.5 text-on-surface font-bold">${m.driver_name}</td>
+                    <td class="px-2 py-1.5">${m.team}</td>
+                    <td class="px-2 py-1.5">P${m.grid_position}</td>
+                    <td class="px-2 py-1.5">${m.season}</td>
+                    <td class="px-2 py-1.5">${m.round}</td>
+                    <td class="px-2 py-1.5 text-right ${probColor} font-bold text-[14px]">${data.win_probability}%</td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    // SHAP pane — top features as horizontal bars
+    const shapEl = $('shap-content');
+    if (data.shap_values && Object.keys(data.shap_values).length > 0) {
+        const entries = Object.entries(data.shap_values)
+            .map(([k, v]) => [k, parseFloat(v)])
+            .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+            .slice(0, 6);
+        const maxAbs = Math.max(...entries.map(e => Math.abs(e[1])), 0.001);
+
+        shapEl.innerHTML = entries.map(([feat, val]) => {
+            const pct = Math.min(Math.abs(val) / maxAbs * 100, 100).toFixed(0);
+            const color = val >= 0 ? 'bg-primary-container' : 'bg-secondary-fixed-dim';
+            const textColor = val >= 0 ? 'text-primary-container' : 'text-secondary-fixed-dim';
+            const dir = val >= 0 ? 'right-0' : 'left-0';
+            return `
+                <div class="flex items-center gap-3">
+                    <span class="font-label-caps text-[9px] w-24 text-on-surface-variant/80 truncate" title="${feat}">${feat.replace(/_/g, ' ').toUpperCase()}</span>
+                    <div class="flex-1 h-2 bg-surface-variant rounded-sm relative">
+                        <div class="absolute ${dir} top-0 h-full ${color} rounded-sm shap-bar" style="--target-width:${pct}%;width:${pct}%"></div>
+                    </div>
+                    <span class="font-label-caps text-[9px] ${textColor} w-12 text-right">${val >= 0 ? '+' : ''}${val.toFixed(3)}</span>
+                </div>
+            `;
+        }).join('');
+    } else {
+        shapEl.innerHTML = '<p class="text-on-surface-variant/60 italic text-[11px]">No SHAP data available</p>';
+    }
+
+    // Race Radio pane — LLM explanation
+    const radioEl = $('radio-content');
+    if (data.llm_explanation) {
+        const now = new Date();
+        const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        // Split explanation into lines for radio-style formatting
+        const lines = data.llm_explanation.split(/\n+/).filter(l => l.trim());
+        radioEl.innerHTML = lines.map((line, i) => {
+            const tag = i === 0 ? '[SYNTHESIS]' : '[STRAT_AGENT]';
+            const tagColor = i === 0 ? 'text-secondary-container' : 'text-secondary-fixed-dim';
+            return `<div><span class="text-on-surface-variant">${ts}</span> <span class="${tagColor}">${tag}</span> ${line.trim()}</div>`;
+        }).join('');
+    } else {
+        radioEl.innerHTML = '<div><span class="text-on-surface-variant/50">—</span> No synthesis available</div>';
+    }
+}
+
+// --- Button Wiring ---
+
+// "Run Prediction" buttons → scroll to terminal input
+$('nav-run-btn').addEventListener('click', scrollToInput);
+$('hero-run-btn').addEventListener('click', scrollToInput);
+$('cta-launch-btn').addEventListener('click', scrollToInput);
+
+// "View model proof" → scroll to features section
+$('hero-proof-btn').addEventListener('click', () => {
+    document.querySelector('#section-features').scrollIntoView({ behavior: 'smooth' });
+});
+
+// "Read API docs" → open Swagger
+$('cta-docs-btn').addEventListener('click', () => {
+    window.open(`${API_BASE}/docs`, '_blank');
+});
+
+// Terminal send button + Enter key
+$('terminal-send').addEventListener('click', () => {
+    runPrediction($('terminal-input').value);
+});
+$('terminal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runPrediction($('terminal-input').value);
+});
+
+// Health indicator click → re-check
+$('health-indicator').addEventListener('click', () => {
+    checkHealth();
+    showToast('Health check triggered', 'info');
+});
+
+// Footer links
+$('footer-api-ref').addEventListener('click', () => window.open(`${API_BASE}/docs`, '_blank'));
+$('footer-docs').addEventListener('click', () => window.open(`${API_BASE}/redoc`, '_blank'));
+$('footer-status').addEventListener('click', async () => {
+    try {
+        const res = await fetch(`${API_BASE}/health`);
+        const data = await res.json();
+        showToast(`Status: ${data.status} | Model: ${data.model_loaded ? '✓' : '✗'} | Data: ${data.data_available ? '✓' : '✗'}`, data.status === 'healthy' ? 'success' : 'error');
+    } catch {
+        showToast('API unreachable', 'error');
+    }
+});
+
+// --- Init ---
+checkHealth();
+// Re-check health every 30s
+setInterval(checkHealth, 30000);
+</script>
+</body></html>

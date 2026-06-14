@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(name)s | %(level
 def detect_drift(
     data_path: str = "data_output/fastf1_races.parquet",
     current_season: int = 2026,
-    report_output_path: str = "ui/drift_report.html"
+    report_output_path: str = "data_output/drift_report.html"
 ) -> bool:
     """
     Detects drift between the reference dataset (historical) and the current dataset.

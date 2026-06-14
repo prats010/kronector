@@ -3,7 +3,6 @@
 # ============================================================================
 # Services:
 #   api       — FastAPI prediction server (port 8000)
-#   streamlit — Drift monitoring dashboard (port 8501)
 #   mlflow    — MLflow tracking server (port 5000)
 #   nginx     — Reverse proxy (ports 80/443)
 #
@@ -35,31 +34,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
-    restart: unless-stopped
-    networks:
-      - kronector-net
-
-  # --------------------------------------------------------------------------
-  # Streamlit — Drift monitoring dashboard
-  # --------------------------------------------------------------------------
-  streamlit:
-    build:
-      context: .
-      target: production
-    container_name: kronector-dashboard
-    command: >
-      streamlit run ui/monitoring_dashboard.py
-      --server.port=8501
-      --server.address=0.0.0.0
-      --server.headless=true
-      --browser.gatherUsageStats=false
-    ports:
-      - "8501:8501"
-    env_file:
-      - .env
-    volumes:
-      - model_data:/app/mlruns
-      - app_data:/app/data_output
     restart: unless-stopped
     networks:
       - kronector-net

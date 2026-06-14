@@ -28,7 +28,7 @@ def add_neon_glow(ax, x, y, color, lw=2):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-path", default="data_output/fastf1_races.parquet")
-    parser.add_argument("--output-dir", default="frontend/public/metrics")
+    parser.add_argument("--output-dir", default="assets/metrics")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)

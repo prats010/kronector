@@ -185,7 +185,7 @@ import os
 
 _cors_origins = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:8501,http://localhost:5173",
+    "http://localhost:3000,http://localhost:8501,http://localhost:5173,http://localhost:8080,http://localhost:8000,null",
 ).split(",")
 
 app.add_middleware(

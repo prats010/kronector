@@ -109,7 +109,7 @@ def main():
     drift_detected = detect_drift(
         data_path=str(out_path),
         current_season=2026,
-        report_output_path="ui/drift_report.html"
+        report_output_path="data_output/drift_report.html"
     )
     
     if drift_detected:

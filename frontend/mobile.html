@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>KRONECTOR | F1 Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#131313",
+                        "primary": "#ffb4a7",
+                        "on-surface-variant": "#eabcb4",
+                        "on-primary-container": "#5b0300",
+                        "secondary-fixed": "#74f5ff",
+                        "primary-fixed-dim": "#ffb4a7",
+                        "surface-tint": "#ffb4a7",
+                        "secondary": "#ddfcff",
+                        "secondary-fixed-dim": "#00dbe7",
+                        "on-tertiary-container": "#282a2a",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-secondary-container": "#006a70",
+                        "inverse-primary": "#be0e00",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-secondary-fixed": "#002022",
+                        "background": "#131313",
+                        "secondary-container": "#00f1fe",
+                        "on-primary-fixed": "#400200",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-highest": "#353534",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "primary-container": "#ff553d",
+                        "on-background": "#e5e2e1",
+                        "surface-container": "#201f1f",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#131313",
+                        "surface-bright": "#3a3939",
+                        "on-primary": "#670400",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary": "#c6c6c7",
+                        "surface-variant": "#353534",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-primary-fixed-variant": "#910900",
+                        "surface-container-low": "#1c1b1b",
+                        "primary-fixed": "#ffdad4",
+                        "outline-variant": "#5f3e39",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#909191",
+                        "on-tertiary": "#2f3131",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "outline": "#b08780",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#00363a",
+                        "race-red": "#ff1801",
+                        "neon-cyan": "#00dbe7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-max": "1440px",
+                        "unit": "4px",
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-fixed": ["JetBrains Mono"],
+                        "display-lg": ["Inter"],
+                        "body-main": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "body-fixed": ["14px", {"lineHeight": "1.5", "letterSpacing": "0em", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "body-main": ["16px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #0A0A0A; color: #e5e2e1; }
+        .carbon-border { border: 1px solid #2D2D2D; }
+        .metric-accent-red { border-left: 2px solid #ff1801; }
+        .metric-accent-cyan { border-left: 2px solid #00dbe7; }
+        .terminal-header { background: linear-gradient(to bottom, #1A1A1A, #111111); }
+        .zebra-list div:nth-child(even) { background-color: #151515; }
+        .pulse-node { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-main selection:bg-race-red selection:text-white overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 backdrop-blur-md bg-surface/80 border-b border-outline-variant flex justify-between items-center px-margin-mobile h-14 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+<span class="font-headline-md text-headline-md-mobile font-black tracking-tighter text-primary">KRONECTOR</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Engineer Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a technical Formula 1 race engineer wearing high-end headphones in a dark, data-driven pit wall environment. The lighting is dominated by glowing cyan telemetry screens reflecting off their glasses, creating a sharp, high-performance motorsport atmosphere with a focus on deep blacks and vibrant technical accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdxk5F6y5JOwsj3vJFZHGg2ZIMdMP5AxXvxwGJhvFasyBsskV0kwijwXRDP9uIJGM4j_RLw-gxyg_3JVGPtd6ajb3-RhxilueEqcohiFz4dlFkeudrBbfZSsCrIHVyym6UUDf-9fYc4f1xuCRZD5mzdJKRwrJW128xlvWZaJ5Gc_-oM8ZsFJR0iedjp17YpWlMghL-7gr8sIKG6dZc8KknBJG3ZkiLE37hUyoCjHcRAAl6ZSJne9nMJADed0fFMCrTlk6bGdUsSqi8"/>
+</div>
+</header>
+<main class="pt-20 pb-24 px-margin-mobile flex flex-col gap-10">
+<!-- Hero Section -->
+<section id="m-section-hero" class="flex flex-col gap-6">
+<div class="space-y-4">
+<h1 class="font-display-lg-mobile text-display-lg-mobile leading-tight">
+                    Predict the race before <span class="text-race-red">lights out</span>
+</h1>
+<p class="font-body-main text-on-surface-variant leading-relaxed">
+                    Kronector turns Formula 1 telemetry, qualifying pace, driver form, and model explainability into race-winning predictions before the grid forms.
+                </p>
+</div>
+<div class="flex flex-col gap-3">
+<button id="m-hero-run-btn" class="bg-race-red text-white font-headline-md py-4 rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                    Run prediction
+                </button>
+<button id="m-hero-proof-btn" class="border border-neon-cyan text-neon-cyan font-label-caps py-4 rounded-lg flex items-center justify-center gap-2 uppercase tracking-widest active:scale-95 transition-transform">
+                    View model proof
+                </button>
+</div>
+</section>
+<!-- Prediction Terminal -->
+<section id="m-section-terminal" class="carbon-border rounded-lg bg-[#111111] overflow-hidden flex flex-col scroll-mt-20">
+<div class="terminal-header p-3 border-b border-[#2D2D2D] flex justify-between items-center">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-[#333]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#333]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#333]"></div>
+</div>
+<span id="m-terminal-label" class="font-label-caps text-[10px] text-on-surface-variant/60 uppercase">READY FOR QUERY</span>
+</div>
+<!-- Conditions Bar -->
+<div id="m-conditions-bar" class="grid grid-cols-3 divide-x divide-[#2D2D2D] border-b border-[#2D2D2D]">
+<div class="p-3 flex flex-col gap-1">
+<span class="font-label-caps text-[9px] text-on-surface-variant/50">DRIVER</span>
+<span id="m-cond-driver" class="font-body-fixed text-neon-cyan">—</span>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<span class="font-label-caps text-[9px] text-on-surface-variant/50">TEAM</span>
+<span id="m-cond-team" class="font-body-fixed text-on-surface">—</span>
+</div>
+<div class="p-3 flex flex-col gap-1">
+<span class="font-label-caps text-[9px] text-on-surface-variant/50">WIN %</span>
+<span id="m-cond-prob" class="font-body-fixed text-race-red">—</span>
+</div>
+</div>
+<!-- Driver List -->
+<div id="m-driver-list" class="zebra-list flex flex-col">
+<div class="p-4 flex items-center justify-center">
+<p class="font-body-fixed text-[12px] text-on-surface-variant/60 italic">Submit a query to see predictions...</p>
+</div>
+</div>
+<!-- SHAP Bars -->
+<div id="m-shap-pane" class="p-4 bg-[#0D0D0D] border-t border-[#2D2D2D] flex flex-col gap-3">
+<span class="font-label-caps text-[10px] text-on-surface-variant/60">SHAP FEATURE INFLUENCE</span>
+<div id="m-shap-content" class="space-y-2">
+<p class="font-body-fixed text-[11px] text-on-surface-variant/50 italic">Awaiting prediction...</p>
+</div>
+</div>
+<!-- Radio Feed -->
+<div id="m-radio-pane" class="p-4 bg-[#080808] border-t border-[#2D2D2D]">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-[14px] text-race-red" data-icon="settings_input_antenna">settings_input_antenna</span>
+<span class="font-label-caps text-[10px] text-race-red">LATEST SYNTHESIS</span>
+</div>
+<p id="m-radio-content" class="font-body-fixed text-[12px] text-on-surface/90 italic leading-relaxed">
+                    Waiting for agentic synthesis...
+                </p>
+</div>
+<!-- Input Bar -->
+<div class="p-3 bg-[#1A1A1A] border-t border-[#2D2D2D] flex gap-2 items-center">
+<input id="m-terminal-input" class="flex-1 bg-black border border-[#2D2D2D] rounded-lg px-3 py-2 text-xs font-body-fixed focus:border-neon-cyan focus:ring-0" placeholder="Who wins the 2026 Canadian GP?" type="text" autocomplete="off"/>
+<button id="m-terminal-send" class="w-8 h-8 flex items-center justify-center bg-race-red rounded-lg">
+<span class="material-symbols-outlined text-white text-sm" data-icon="send">send</span>
+</button>
+</div>
+</section>
+<!-- Metrics Grid -->
+<section id="m-section-metrics" class="grid grid-cols-2 gap-4 scroll-mt-20">
+<div class="carbon-border rounded-lg p-4 metric-accent-cyan flex flex-col gap-1">
+<span class="font-body-fixed font-bold text-lg">71%</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant/60 uppercase">Winner Accuracy</span>
+</div>
+<div class="carbon-border rounded-lg p-4 metric-accent-red flex flex-col gap-1">
+<span class="font-body-fixed font-bold text-lg">0.94</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant/60 uppercase">ROC AUC</span>
+</div>
+<div class="carbon-border rounded-lg p-4 metric-accent-cyan flex flex-col gap-1">
+<span class="font-body-fixed font-bold text-lg">4-Agent</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant/60 uppercase">Pipeline</span>
+</div>
+<div class="carbon-border rounded-lg p-4 metric-accent-red flex flex-col gap-1">
+<span class="font-body-fixed font-bold text-lg">&lt; 1s</span>
+<span class="font-label-caps text-[9px] text-on-surface-variant/60 uppercase">Inference</span>
+</div>
+</section>
+<!-- Technical Capabilities -->
+<section id="m-section-capabilities" class="flex flex-col gap-4 scroll-mt-20">
+<h2 class="font-label-caps text-on-surface-variant/50 uppercase tracking-widest text-[10px]">Technical Core</h2>
+<div class="space-y-3">
+<div class="carbon-border rounded-lg p-5 flex gap-4 items-start">
+<span class="material-symbols-outlined text-race-red" data-icon="query_stats">query_stats</span>
+<div class="space-y-1">
+<h3 class="font-headline-md text-sm text-on-surface">Race Prediction</h3>
+<p class="font-body-fixed text-xs text-on-surface-variant leading-normal">XGBoost &amp; LSTM hybrid ensemble trained on 20 years of historical race data and live lap telemetry.</p>
+</div>
+</div>
+<div class="carbon-border rounded-lg p-5 flex gap-4 items-start">
+<span class="material-symbols-outlined text-neon-cyan" data-icon="explain">expand</span>
+<div class="space-y-1">
+<h3 class="font-headline-md text-sm text-on-surface">SHAP Explainability</h3>
+<p class="font-body-fixed text-xs text-on-surface-variant leading-normal">Deep-dive into every prediction. Understand exactly how tire age or air pressure influenced the model's output.</p>
+</div>
+</div>
+<div class="carbon-border rounded-lg p-5 flex gap-4 items-start">
+<span class="material-symbols-outlined text-race-red" data-icon="monitoring">monitoring</span>
+<div class="space-y-1">
+<h3 class="font-headline-md text-sm text-on-surface">Drift Monitoring</h3>
+<p class="font-body-fixed text-xs text-on-surface-variant leading-normal">Real-time detection of concept drift as track conditions evolve beyond the initial training baseline.</p>
+</div>
+</div>
+<div class="carbon-border rounded-lg p-5 flex gap-4 items-start">
+<span class="material-symbols-outlined text-neon-cyan" data-icon="speaker_group">speaker_group</span>
+<div class="space-y-1">
+<h3 class="font-headline-md text-sm text-on-surface">Agentic Race Radio</h3>
+<p class="font-body-fixed text-xs text-on-surface-variant leading-normal">LLM-powered reasoning agents synthesize raw model outputs into strategic audio/text directives.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Architecture Flow -->
+<section id="m-section-architecture" class="flex flex-col gap-6 py-4 scroll-mt-20">
+<h2 class="font-label-caps text-on-surface-variant/50 uppercase tracking-widest text-[10px] text-center">Pipeline Architecture</h2>
+<div class="relative flex flex-col items-center gap-12">
+<!-- Vertical Line Background -->
+<div class="absolute h-full w-[1.5px] bg-gradient-to-b from-race-red via-neon-cyan to-race-red opacity-30 z-0"></div>
+<!-- Node 1 -->
+<div class="z-10 bg-surface carbon-border p-4 rounded-lg w-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-neon-cyan pulse-node"></div>
+<span class="font-label-caps text-xs">FASTF1 + JOLPICA</span>
+</div>
+<span class="bg-on-secondary-fixed-variant text-secondary-fixed text-[9px] px-2 py-0.5 rounded font-label-caps">INGESTING</span>
+</div>
+<!-- Node 2 -->
+<div class="z-10 bg-surface carbon-border p-4 rounded-lg w-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-white/20"></div>
+<span class="font-label-caps text-xs">25+ FEATURE VECTOR</span>
+</div>
+<span class="bg-surface-container-highest text-on-surface-variant text-[9px] px-2 py-0.5 rounded font-label-caps">NORMALIZED</span>
+</div>
+<!-- Node 3 -->
+<div class="z-10 bg-surface carbon-border p-4 rounded-lg w-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-race-red pulse-node"></div>
+<span class="font-label-caps text-xs">ENSEMBLE BACKBONE</span>
+</div>
+<span class="bg-error-container text-error text-[9px] px-2 py-0.5 rounded font-label-caps">TRAINED</span>
+</div>
+<!-- Node 4 -->
+<div class="z-10 bg-surface carbon-border p-4 rounded-lg w-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-neon-cyan"></div>
+<span class="font-label-caps text-xs">TRITON INFERENCE</span>
+</div>
+<span class="bg-on-secondary-container text-secondary-container text-[9px] px-2 py-0.5 rounded font-label-caps">SERVING</span>
+</div>
+<!-- Node 5 -->
+<div class="z-10 bg-surface carbon-border p-4 rounded-lg w-full flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-white/50"></div>
+<span class="font-label-caps text-xs">LLM PIT-WALL</span>
+</div>
+<span class="bg-surface-container-high text-on-surface text-[9px] px-2 py-0.5 rounded font-label-caps">SYNTHESIZED</span>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section id="m-section-cta" class="bg-surface-container-low rounded-lg p-8 text-center flex flex-col gap-6 border border-outline-variant scroll-mt-20">
+<div class="space-y-2">
+<h2 class="font-headline-md text-display-lg-mobile">Ask the pit wall before race day</h2>
+<p class="font-body-main text-on-surface-variant text-sm">Deploy the most advanced prediction suite in open-source motorsport intelligence.</p>
+</div>
+<div class="flex flex-col gap-3">
+<button id="m-cta-launch-btn" class="bg-race-red text-white font-headline-md py-4 rounded-lg active:scale-95 transition-transform">Launch predictor</button>
+<button id="m-cta-docs-btn" class="text-neon-cyan font-label-caps py-2 hover:underline">Read API docs</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 mb-16 bg-surface-container-low border-t border-outline-variant flex flex-col items-center gap-4 px-margin-mobile text-center">
+<span class="font-label-caps text-label-caps text-primary">KRONECTOR INTEL</span>
+<div class="flex gap-6">
+<a class="text-on-tertiary-container hover:text-on-surface font-body-fixed text-[11px] uppercase tracking-tighter" href="#">Terms</a>
+<a class="text-on-tertiary-container hover:text-on-surface font-body-fixed text-[11px] uppercase tracking-tighter" href="#">Privacy</a>
+<a id="m-footer-status" class="text-on-tertiary-container hover:text-on-surface font-body-fixed text-[11px] uppercase tracking-tighter cursor-pointer">API_Status</a>
+<a id="m-footer-docs" class="text-on-tertiary-container hover:text-on-surface font-body-fixed text-[11px] uppercase tracking-tighter cursor-pointer">System_Log</a>
+</div>
+<p class="font-body-fixed text-[10px] text-on-surface-variant opacity-60">© 2024 KRONECTOR INTEL. ALL SYSTEMS NOMINAL.</p>
+</footer>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 backdrop-blur-lg bg-surface/90 border-t border-outline-variant flex justify-around items-center h-16 px-4 pb-safe md:hidden">
+<div id="m-nav-dashboard" class="flex flex-col items-center justify-center text-secondary-fixed-dim bg-secondary-container/20 rounded-xl p-2 active:scale-90 duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+</div>
+<div id="m-nav-analytics" class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary transition-colors active:scale-90 duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+</div>
+<div id="m-nav-radio" class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary transition-colors active:scale-90 duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="vibration">vibration</span>
+</div>
+<div id="m-nav-api" class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:text-primary transition-colors active:scale-90 duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<!-- Toast Notification -->
+<div id="m-toast" class="fixed bottom-20 left-4 right-4 z-[100] px-4 py-3 rounded-lg font-body-fixed text-[12px] shadow-2xl border transition-all duration-300 opacity-0 translate-y-4 pointer-events-none text-center" style="background:#201f1f;border-color:#5f3e39;color:#e5e2e1;"></div>
+
+<script>
+// ============================================================================
+// KRONECTOR Mobile — API Integration
+// ============================================================================
+
+const API_BASE = 'http://localhost:8000';
+
+// --- Utility ---
+function $(id) { return document.getElementById(id); }
+
+function showToast(msg, type = 'info') {
+    const t = $('m-toast');
+    t.textContent = msg;
+    t.style.borderColor = type === 'error' ? '#93000a' : type === 'success' ? '#00dbe7' : '#5f3e39';
+    t.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+    t.classList.add('opacity-100', 'translate-y-0');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => {
+        t.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+        t.classList.remove('opacity-100', 'translate-y-0');
+    }, 4000);
+}
+
+function scrollToInput() {
+    const input = $('m-terminal-input');
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => input.focus(), 400);
+}
+
+// --- Prediction API ---
+let _isLoading = false;
+
+async function runPrediction(query) {
+    if (_isLoading) return;
+    if (!query || query.trim().length < 3) {
+        showToast('Query too short — try a full question', 'error');
+        return;
+    }
+    _isLoading = true;
+    $('m-terminal-send').disabled = true;
+
+    // Loading state
+    $('m-terminal-label').textContent = 'PROCESSING...';
+    $('m-cond-driver').textContent = '...';
+    $('m-cond-team').textContent = '...';
+    $('m-cond-prob').textContent = '...';
+    $('m-driver-list').innerHTML = '<div class="p-4 flex items-center justify-center"><p class="font-body-fixed text-[12px] text-neon-cyan animate-pulse">⏳ Querying pipeline...</p></div>';
+    $('m-shap-content').innerHTML = '<p class="font-body-fixed text-[11px] text-on-surface-variant/50 animate-pulse">Computing...</p>';
+    $('m-radio-content').textContent = 'Synthesizing response...';
+
+    try {
+        const res = await fetch(`${API_BASE}/predict/f1`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query.trim() })
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ detail: res.statusText }));
+            throw new Error(err.detail || `API Error ${res.status}`);
+        }
+
+        const data = await res.json();
+        renderMobilePrediction(data);
+        showToast('Prediction complete ✓', 'success');
+    } catch (err) {
+        $('m-terminal-label').textContent = 'ERROR';
+        $('m-driver-list').innerHTML = `<div class="p-4"><p class="font-body-fixed text-[12px] text-race-red">❌ ${err.message}</p></div>`;
+        $('m-shap-content').innerHTML = '<p class="text-race-red text-[11px]">Error</p>';
+        $('m-radio-content').textContent = err.message;
+        showToast(err.message, 'error');
+    } finally {
+        _isLoading = false;
+        $('m-terminal-send').disabled = false;
+    }
+}
+
+function renderMobilePrediction(data) {
+    const m = data.metadata;
+
+    // Header label
+    $('m-terminal-label').textContent = `${m.season} R${m.round} // ${m.driver_name.toUpperCase()}`;
+
+    // Conditions bar
+    $('m-cond-driver').textContent = m.driver_name;
+    $('m-cond-team').textContent = m.team;
+    $('m-cond-prob').textContent = `${data.win_probability}%`;
+
+    // Driver card in list
+    const prob = data.win_probability;
+    const barColor = prob > 40 ? 'bg-race-red' : prob > 15 ? 'bg-neon-cyan' : 'bg-white/40';
+    const textColor = prob > 40 ? 'text-race-red' : prob > 15 ? 'text-neon-cyan' : 'text-on-surface';
+    const borderColor = prob > 40 ? 'border-race-red' : prob > 15 ? 'border-neon-cyan' : 'border-[#555]';
+
+    $('m-driver-list').innerHTML = `
+        <div class="p-3 flex justify-between items-center border-l-2 ${borderColor}">
+            <div class="flex flex-col">
+                <span class="font-label-caps text-on-surface">${m.driver_name.toUpperCase()}</span>
+                <span class="font-label-caps text-[10px] text-on-surface-variant/50">${m.team.toUpperCase()}</span>
+            </div>
+            <div class="text-right">
+                <span class="font-body-fixed font-bold ${textColor} text-lg">${prob}%</span>
+                <div class="h-1 w-24 bg-[#2D2D2D] rounded-full mt-1 overflow-hidden">
+                    <div class="h-full ${barColor}" style="width:${Math.min(prob, 100)}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="p-3 flex justify-between items-center text-on-surface-variant/60 border-l-2 border-[#333]">
+            <span class="font-label-caps text-[10px]">GRID POSITION</span>
+            <span class="font-body-fixed">P${m.grid_position}</span>
+        </div>
+        ${data.confidence_rating ? `
+        <div class="p-3 flex justify-between items-center text-on-surface-variant/60 border-l-2 border-[#333]">
+            <span class="font-label-caps text-[10px]">CONFIDENCE</span>
+            <span class="font-body-fixed text-neon-cyan">${data.confidence_rating}</span>
+        </div>` : ''}
+    `;
+
+    // SHAP bars
+    const shapEl = $('m-shap-content');
+    if (data.shap_values && Object.keys(data.shap_values).length > 0) {
+        const entries = Object.entries(data.shap_values)
+            .map(([k, v]) => [k, parseFloat(v)])
+            .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+            .slice(0, 4);
+        const maxAbs = Math.max(...entries.map(e => Math.abs(e[1])), 0.001);
+
+        shapEl.innerHTML = entries.map(([feat, val]) => {
+            const pct = Math.min(Math.abs(val) / maxAbs * 100, 100).toFixed(0);
+            const isPositive = val >= 0;
+            const barBg = isPositive ? 'bg-race-red/20' : 'bg-neon-cyan/20';
+            const barFill = isPositive ? 'bg-race-red' : 'bg-neon-cyan';
+            const textCol = isPositive ? 'text-race-red' : 'text-neon-cyan';
+            const dir = isPositive ? 'right-0' : 'left-0';
+            return `
+                <div class="flex items-center gap-3">
+                    <span class="font-label-caps text-[10px] w-20 text-on-surface-variant/80">${feat.replace(/_/g, ' ').toUpperCase().slice(0, 10)}</span>
+                    <div class="flex-1 h-2 ${barBg} rounded-sm relative">
+                        <div class="absolute ${dir} top-0 h-full w-[${pct}%] ${barFill}"></div>
+                    </div>
+                    <span class="font-label-caps text-[10px] ${textCol}">${val >= 0 ? '+' : ''}${val.toFixed(2)}</span>
+                </div>
+            `;
+        }).join('');
+    } else {
+        shapEl.innerHTML = '<p class="font-body-fixed text-[11px] text-on-surface-variant/50 italic">No SHAP data</p>';
+    }
+
+    // Radio synthesis
+    $('m-radio-content').textContent = data.llm_explanation || 'No synthesis available.';
+}
+
+// --- Button Wiring ---
+
+// Hero buttons
+$('m-hero-run-btn').addEventListener('click', scrollToInput);
+$('m-hero-proof-btn').addEventListener('click', () => {
+    $('m-shap-pane').scrollIntoView({ behavior: 'smooth' });
+});
+
+// CTA buttons
+$('m-cta-launch-btn').addEventListener('click', scrollToInput);
+$('m-cta-docs-btn').addEventListener('click', () => window.open(`${API_BASE}/docs`, '_blank'));
+
+// Terminal send + Enter
+$('m-terminal-send').addEventListener('click', () => runPrediction($('m-terminal-input').value));
+$('m-terminal-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runPrediction($('m-terminal-input').value);
+});
+
+// Terminal input focus glow
+$('m-terminal-input').addEventListener('focus', () => {
+    $('m-terminal-input').parentElement.classList.add('border-neon-cyan');
+});
+$('m-terminal-input').addEventListener('blur', () => {
+    $('m-terminal-input').parentElement.classList.remove('border-neon-cyan');
+});
+
+// Bottom nav bar
+$('m-nav-dashboard').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+$('m-nav-analytics').addEventListener('click', () => $('m-shap-pane').scrollIntoView({ behavior: 'smooth' }));
+$('m-nav-radio').addEventListener('click', () => $('m-radio-pane').scrollIntoView({ behavior: 'smooth' }));
+$('m-nav-api').addEventListener('click', () => window.open(`${API_BASE}/docs`, '_blank'));
+
+// Footer links
+$('m-footer-status').addEventListener('click', async () => {
+    try {
+        const res = await fetch(`${API_BASE}/health`);
+        const data = await res.json();
+        showToast(`${data.status} | Model: ${data.model_loaded ? '✓' : '✗'} | Data: ${data.data_available ? '✓' : '✗'}`, data.status === 'healthy' ? 'success' : 'error');
+    } catch {
+        showToast('API unreachable', 'error');
+    }
+});
+$('m-footer-docs').addEventListener('click', () => window.open(`${API_BASE}/docs`, '_blank'));
+</script>
+</body></html>
